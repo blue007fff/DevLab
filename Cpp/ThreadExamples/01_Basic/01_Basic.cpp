@@ -57,6 +57,36 @@ void Example2()
 	std::cout << std::format("count : {}\n", count);
 }
 
+#include <mutex>
+void Example2_Mutex()
+{
+	std::cout << __func__ << std::endl;
+
+	std::mutex m;
+	auto func1 = [&m](int& count) {
+		std::thread::id tid = std::this_thread::get_id();
+		std::cout << std::format("thread: {}: func(int& count)\n",
+			reinterpret_cast<uint64_t>(std::addressof(tid)));
+
+		for (auto i : std::ranges::iota_view{ 0, 100000 }) {
+			std::unique_lock<std::mutex> lock(m);
+			//m.lock();
+			count++;
+			//m.unlock();
+		}
+	};
+
+	int count = 0;
+	std::thread t1(func1, std::ref(count));
+	std::thread t2(func1, std::ref(count));
+
+	t1.join();
+	t2.join();
+
+	// result : 200000
+	std::cout << std::format("count : {}\n", count);
+}
+
 int main()
 {
 	auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 30);};
@@ -66,4 +96,7 @@ int main()
 
 	PrintSplitLines();
 	Example2();
+
+	PrintSplitLines();
+	Example2_Mutex();
 }
