@@ -5,6 +5,8 @@
 #include <string>
 #include <future>
 
+//https://modoocode.com/284
+
 void Teset1()
 {
 	std::cout << __func__ << std::endl;
@@ -124,6 +126,21 @@ void Test3_SharedFuture()
 	for (auto& thd : threads) thd.join();
 }
 
+void Test4_PackagedTask()
+{
+	std::cout << __func__ << std::endl;
+
+	// promise 와 다르게 함수 자체를 받음.
+	std::packaged_task<int(int, int)> task([](int a, int b) {return a + b; });
+	std::future<int> workFuture = task.get_future();
+
+	// function 대신 task 를 넘겨 줌.
+	std::thread t(std::move(task), 10, 20);
+
+	std::cout << "result : " << workFuture.get() << std::endl;
+	t.join();
+}
+
 int main()
 {
 	auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
@@ -136,5 +153,8 @@ int main()
 
 	PrintSplitLines();
 	Test3_SharedFuture();
+
+	PrintSplitLines();
+	Test4_PackagedTask();
 	return 0;
 }
