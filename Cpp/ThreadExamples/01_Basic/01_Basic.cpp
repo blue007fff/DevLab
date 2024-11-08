@@ -87,6 +87,43 @@ void Example2_Mutex()
 	std::cout << std::format("count : {}\n", count);
 }
 
+#include <vector>
+#include <condition_variable>
+void Example_ConditionVariable()
+{
+	std::cout << __func__ << std::endl;
+
+	std::mutex m;
+	std::condition_variable cv;
+	bool ready{ false };
+
+	std::vector<std::thread> threads;
+
+	auto func1 = [&m, &cv, &ready](int id) {
+		std::cout << std::format("start thread: {}\n", id);
+
+		std::unique_lock lk(m);
+		//cv.wait(lk);
+		cv.wait(lk, [&]() {return ready; });
+
+		std::cout << std::format("end thread: {}\n", id);
+	};
+
+	for (int i = 0; i < 5; ++i)
+		threads.emplace_back(func1, i);
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	ready = true;
+
+	for (auto& thd : threads) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		cv.notify_one();
+	}
+	cv.notify_all();
+
+	for (auto& thd : threads) thd.join();
+}
+
 int main()
 {
 	auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 30);};
@@ -99,4 +136,7 @@ int main()
 
 	PrintSplitLines();
 	Example2_Mutex();
+
+	PrintSplitLines();
+	Example_ConditionVariable();
 }
