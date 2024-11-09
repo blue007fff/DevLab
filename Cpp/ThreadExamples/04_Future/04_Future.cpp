@@ -138,6 +138,11 @@ void Test4_PackagedTask()
 		std::future<int> result = task.get_future();
 		task(11, 22);
 		std::cout << "task: " << result.get() << std::endl;
+
+		task.reset();  // 재사용 초기화
+		std::future<int> result2 = task.get_future();
+		task(33, 44);  // 두 번째 호출
+		std::cout << "task-reuse: " << result2.get() << std::endl;
 	}
 
 	// task-bind
@@ -161,6 +166,36 @@ void Test4_PackagedTask()
 	}	
 }
 
+#include <type_traits> // C++20 이상에서 std::result_of_t -> std::invoke_result_t 사용
+
+template<typename Func, typename... Args>
+std::future<std::invoke_result_t<std::decay_t<Func>, std::decay_t<Args>...>> 
+MyPackagedTaskAsync(Func&& func, Args... args) {
+	using ReturnType = std::invoke_result_t<std::decay_t<Func>, std::decay_t<Args>...>;
+	std::cout << std::format("ReturnType:{}, Func:{}, sizeof(Func):{}\n", 
+		typeid(ReturnType).name(), typeid(Func).name(), sizeof(func));
+
+	//std::packaged_task<Result()> task(std::bind(std::forward<Func>(func), std::forward<Args>(args)...));
+	std::packaged_task<ReturnType()> task(std::bind(func, std::forward<Args>(args)...));
+
+	auto taskFuture = task.get_future();
+	std::thread t([&task = task]() {task(); });
+	t.join();
+	return taskFuture;
+}
+
+void Test4_PackagedTask_MyAsync()
+{
+	std::cout << __func__ << std::endl;
+
+	auto future1 = MyPackagedTaskAsync([](int a, int b) { return a + b; }, 10, 20);
+	std::cout << "MyAsync: " << future1.get() << std::endl;
+
+	int a = 0, b = 0;
+	auto future2 = MyPackagedTaskAsync([a, b](int c) { return c * c; }, 10);
+	std::cout << "MyAsync: " << future2.get() << std::endl;
+}
+
 int main()
 {
 	auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
@@ -176,5 +211,8 @@ int main()
 
 	PrintSplitLines();
 	Test4_PackagedTask();
+
+	PrintSplitLines();
+	Test4_PackagedTask_MyAsync();
 	return 0;
 }
