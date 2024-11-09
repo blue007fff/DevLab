@@ -29,7 +29,6 @@ namespace ThreadPool
 		void WorkerThread(); // Worker 쓰레드
 
 	private:
-		size_t m_numThread; // 총 worker thread 개수.
 		std::vector<std::thread> m_workerThreads;
 
 		// 작업 보관
@@ -43,10 +42,9 @@ namespace ThreadPool
 	};
 
 	ThreadPool::ThreadPool(size_t numThread)
-		: m_numThread(numThread)
 	{
-		m_workerThreads.reserve(m_numThread);
-		for (size_t i = 0; i < m_numThread; ++i) {
+		m_workerThreads.reserve(numThread);
+		for (size_t i = 0; i < numThread; ++i) {
 			m_workerThreads.emplace_back([this]() { this->WorkerThread(); });
 		}
 	}
@@ -60,9 +58,7 @@ namespace ThreadPool
 			if (m_stopAll && this->m_jobs.empty()) {
 				// 전체 중단 및 작업이 없는 경우 종료.
 				return;
-			}
-
-			// 맨 앞의 job 을 뺀다.
+			}			
 			std::function<void()> job = std::move(m_jobs.front());
 			m_jobs.pop();
 			lock.unlock();
