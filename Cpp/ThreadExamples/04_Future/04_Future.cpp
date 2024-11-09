@@ -126,19 +126,39 @@ void Test3_SharedFuture()
 	for (auto& thd : threads) thd.join();
 }
 
+//https://en.cppreference.com/w/cpp/thread/packaged_task
 void Test4_PackagedTask()
 {
 	std::cout << __func__ << std::endl;
 
-	// promise 와 다르게 함수 자체를 받음.
-	std::packaged_task<int(int, int)> task([](int a, int b) {return a + b; });
-	std::future<int> workFuture = task.get_future();
+	// task
+	{			
+		// promise 와 다르게 함수 자체를 받음.
+		std::packaged_task<int(int, int)> task([](int a, int b) {return a + b; });
+		std::future<int> result = task.get_future();
+		task(11, 22);
+		std::cout << "task: " << result.get() << std::endl;
+	}
 
-	// function 대신 task 를 넘겨 줌.
-	std::thread t(std::move(task), 10, 20);
+	// task-bind
+	{
+		std::packaged_task<int()> task(std::bind([](int a, int b) {return a + b; }, 11, 22));
+		std::future<int> result = task.get_future();
+		task();
+		std::cout << "task-bind: " << result.get() << std::endl;
+	}
 
-	std::cout << "result : " << workFuture.get() << std::endl;
-	t.join();
+	// task-thread
+	{
+		std::packaged_task<int(int, int)> task([](int a, int b) {return a + b; });
+		std::future<int> workFuture = task.get_future();
+
+		// function 대신 task 를 넘겨 줌, task() 호출을 thread 로 전달.
+		std::thread t(std::move(task), 11, 22);
+
+		std::cout << "task-thread:: " << workFuture.get() << std::endl;
+		t.join();
+	}	
 }
 
 int main()
