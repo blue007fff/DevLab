@@ -49,6 +49,15 @@ namespace ThreadPool
 		}
 	}
 
+	ThreadPool::~ThreadPool()
+	{
+		m_stopAll = true;
+		m_cvForJobs.notify_all();
+		for (auto& t : m_workerThreads) {
+			t.join();
+		}
+	}
+
 	void ThreadPool::WorkerThread() 
 	{
 		while (true) 
@@ -64,15 +73,6 @@ namespace ThreadPool
 			lock.unlock();
 						
 			job();
-		}
-	}
-
-	ThreadPool::~ThreadPool()
-	{
-		m_stopAll = true;
-		m_cvForJobs.notify_all();
-		for (auto& t : m_workerThreads) {
-			t.join();
 		}
 	}
 
@@ -108,7 +108,8 @@ int work(int t, int id)
 	return id;
 }
 
-int main() {
+int main() 
+{
 	ThreadPool::ThreadPool pool(3);
 
 	std::vector<std::future<int>> futures;
