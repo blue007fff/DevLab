@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "partition", "partition\part
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "copy", "copy\copy.vcxproj", "{3F654D42-096D-4882-93B2-05335C0818B9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "transform", "transform\transform.vcxproj", "{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -63,6 +65,14 @@ Global
 		{3F654D42-096D-4882-93B2-05335C0818B9}.Release|x64.Build.0 = Release|x64
 		{3F654D42-096D-4882-93B2-05335C0818B9}.Release|x86.ActiveCfg = Release|Win32
 		{3F654D42-096D-4882-93B2-05335C0818B9}.Release|x86.Build.0 = Release|Win32
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Debug|x64.ActiveCfg = Debug|x64
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Debug|x64.Build.0 = Debug|x64
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Debug|x86.ActiveCfg = Debug|Win32
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Debug|x86.Build.0 = Debug|Win32
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Release|x64.ActiveCfg = Release|x64
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Release|x64.Build.0 = Release|x64
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Release|x86.ActiveCfg = Release|Win32
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,6 +81,7 @@ Global
 		{D3F170D8-773F-47B5-AD94-4F58B931F7B4} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
 		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
 		{3F654D42-096D-4882-93B2-05335C0818B9} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
+		{CB3A8B32-109C-451A-A4B5-D55F8D0EFB1D} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7DDA04F-B0F9-4348-A0E2-61B3C0285E39}
