@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nth_element", "nth_element\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "algorithm", "algorithm", "{3191AA54-5349-474C-A4DD-B4905B6E75BE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "partition", "partition\partition.vcxproj", "{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -43,12 +45,21 @@ Global
 		{D3F170D8-773F-47B5-AD94-4F58B931F7B4}.Release|x64.Build.0 = Release|x64
 		{D3F170D8-773F-47B5-AD94-4F58B931F7B4}.Release|x86.ActiveCfg = Release|Win32
 		{D3F170D8-773F-47B5-AD94-4F58B931F7B4}.Release|x86.Build.0 = Release|Win32
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Debug|x64.ActiveCfg = Debug|x64
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Debug|x64.Build.0 = Debug|x64
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Debug|x86.ActiveCfg = Debug|Win32
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Debug|x86.Build.0 = Debug|Win32
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Release|x64.ActiveCfg = Release|x64
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Release|x64.Build.0 = Release|x64
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Release|x86.ActiveCfg = Release|Win32
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D3F170D8-773F-47B5-AD94-4F58B931F7B4} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
+		{922903DF-FFBB-4F16-8A02-5EB0DE9173B6} = {3191AA54-5349-474C-A4DD-B4905B6E75BE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7DDA04F-B0F9-4348-A0E2-61B3C0285E39}
