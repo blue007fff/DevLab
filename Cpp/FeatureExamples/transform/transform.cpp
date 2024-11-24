@@ -3,36 +3,18 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-#include <string>
-#include <format>
-
-namespace
-{
-    auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
-}
-
-template <typename T>
-void print(const std::vector<T>& list)
-{
-    // for (T i : list)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-
-    std::copy(list.begin(), list.end(),
-        std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << '\n';
-}
+#include "../../helpers.h"
 
 void example_transform1()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
     std::cout << __FUNCTION__  << std::endl;
 
     std::vector<double> a{1.1, 2.1, 3.1, 4.1, 5.1};
     std::vector<double> b;
     std::transform(a.begin(), a.end(), std::back_inserter(b), [](double d)
         { return d * 2; });
-    print(b);
+    helpers::PrintContainer(b);
 
     struct Ax3
     {
@@ -40,7 +22,7 @@ void example_transform1()
     };
     b.clear();
     std::transform(a.begin(), a.end(), std::back_inserter(b), Ax3());
-    print(b);
+    helpers::PrintContainer(b);
 
     struct AxB
     {
@@ -50,7 +32,7 @@ void example_transform1()
 
     b.clear();
     std::transform(a.begin(), a.end(), std::back_inserter(b), Ax4);
-    print(b);
+    helpers::PrintContainer(b);
 
     std::vector<int> vec1{1, 2, 3, 4, 5};
     std::vector<int> vec2(vec1.rbegin(), vec1.rend());
@@ -58,10 +40,10 @@ void example_transform1()
     // double avg = std::accumulate(vec.begin(), vec.end(), 0.0) / vec.size();
     std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(), [](int x, int y)
         { return x + y; });
-    print(vec3);
+    helpers::PrintContainer(vec3);
 
     std::transform(vec1.begin(), vec1.end(), vec2.begin(), vec3.begin(), std::plus<int>());
-    print(vec3);
+    helpers::PrintContainer(vec3);
 
     std::string lower = "abcde";
     std::transform(lower.begin(), lower.end(), lower.begin(), ::toupper);

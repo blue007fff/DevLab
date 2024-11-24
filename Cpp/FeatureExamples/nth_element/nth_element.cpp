@@ -3,32 +3,14 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-#include <string>
-#include <format>
-
-namespace
-{
-    auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
-}
-
-template <typename T>
-void print(const std::vector<T>& list)
-{
-    // for (T i : list)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-
-    std::copy(list.begin(), list.end(),
-        std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << '\n';
-}
+#include "../../helpers.h"
 
 void example_nth_element()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
 	std::cout << __FUNCTION__ << std::endl;
     std::vector v0{5, 10, 6, 4, 3, 2, 6, 7, 9, 3};
-    print(v0);
+    helpers::PrintContainer(v0);
 
     std::vector<int> v = v0;
     auto print_element = [&v](size_t idx)
@@ -40,27 +22,27 @@ void example_nth_element()
     size_t mididx = v.size() / 2;
     std::nth_element(v.begin(), v.begin() + mididx, v.end());
     print_element(mididx);
-    print(v);
+    helpers::PrintContainer(v);
 
     v = v0;
     std::nth_element(v.begin(), v.begin() + 1, v.end(), std::greater<int>());
     print_element(1);
-    print(v);
+    helpers::PrintContainer(v);
 
     v = v0;
     std::nth_element(v.begin(), v.begin(), v.end()); //, std::greater<int>());
     print_element(0);
-    print(v);
+    helpers::PrintContainer(v);
 
     v = v0;
     std::nth_element(v.begin(), v.end() - 1, v.end(), std::greater<int>());
     print_element(v.size() - 1);
-    print(v);
+    helpers::PrintContainer(v);
 
     v = v0;
     std::nth_element(v.begin(), v.end() - 2, v.end(), std::greater<int>());
     print_element(v.size() - 2);
-    print(v);
+    helpers::PrintContainer(v);
 }
 
 int main()

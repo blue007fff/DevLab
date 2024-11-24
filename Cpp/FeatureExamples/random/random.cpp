@@ -4,15 +4,11 @@
 #include <format>
 #include <iomanip>
 #include <map>
-
-namespace
-{
-    auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
-}
+#include "../../helpers.h"
 
 void ExampleUniformDistribution()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
     //std::cout << __func__ << std::endl;
     std::cout << __FUNCTION__ << std::endl;
 
@@ -29,7 +25,7 @@ void ExampleUniformDistribution()
 }
 void ExampleNormalDistribution()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
     std::cout << __FUNCTION__ << std::endl;
 
     std::random_device rd;

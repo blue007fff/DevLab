@@ -2,33 +2,11 @@
 #include <iterator>
 #include <vector>
 #include <algorithm>
-#include <string>
-#include <format>
-
-namespace
-{
-    auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
-}
-
-template <typename T>
-void print(const std::vector<T>& list)
-{
-    // for (T i : list)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-
-    // std::copy(list.begin(), list.end(),
-    //           std::ostream_iterator<T>(std::cout, ", "));
-    // std::cout << '\n';
-
-    std::for_each(list.begin(), list.end(), [](const T& v)
-        { std::cout << v << ", "; });
-    std::cout << '\n';
-}
+#include "../../helpers.h"
 
 void example_copy()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
     std::cout << __FUNCTION__ <<  std::endl;
 
     std::cout << "copy array" << std::endl;
@@ -44,20 +22,21 @@ void example_copy()
 
     b.resize(a.size());
     std::copy(a.begin(), a.end(), b.begin());
-    print(b);
+    helpers::PrintContainer(b);
 
     std::copy(a.begin(), a.end(), std::back_inserter(b));
-    print(b);
+    helpers::PrintContainer(b);
 
     std::cout << "copy vector<double> -> vector<int>" << std::endl;
     std::vector<int> d0;
     std::copy(a.begin(), a.end(), std::back_inserter(d0));
-    print(d0);
+    helpers::PrintContainer(d0);
 }
 
 void example_copy_if()
 {
-    std::cout << __FUNCTION__ << "==========================" << std::endl;
+    helpers::PrintRepeatedChar('-', 50);
+    std::cout << __FUNCTION__ << std::endl;
 
     std::vector<double> a{1, 2, 3, 4, 5};
     std::vector<double> b;
@@ -65,11 +44,11 @@ void example_copy_if()
 
     std::copy_if(a.begin(), a.end(), b.begin(), [](double d)
         { return d < 3.0; });
-    print(b);
+    helpers::PrintContainer(b);
 
     std::copy_if(a.begin(), a.end(), std::back_inserter(b), [](double d)
         { return d > 3.0; });
-    print(b);
+    helpers::PrintContainer(b);
 }
 
 int main()

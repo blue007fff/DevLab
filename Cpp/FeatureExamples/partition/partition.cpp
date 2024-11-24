@@ -3,29 +3,11 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
-#include <string>
-#include <format>
-
-namespace
-{
-    auto PrintSplitLines = []() {std::cout << std::format("{:-<{}}\n", "", 50); };
-}
-
-template <typename T>
-void print(const std::vector<T>& list)
-{
-    // for (T i : list)
-    //     std::cout << i << " ";
-    // std::cout << std::endl;
-
-    std::copy(list.begin(), list.end(),
-        std::ostream_iterator<T>(std::cout, ", "));
-    std::cout << '\n';
-}
+#include "../../helpers.h"
 
 void example_partition()
 {
-    PrintSplitLines();
+    helpers::PrintRepeatedChar('-', 50);
     std::cout << __FUNCTION__ << std::endl;
     // pred 가 참인 원소들을 거짓인 원소 앞에 배치.
     // - pred 에서 당연히 v 값을 수정하면 안됨.
