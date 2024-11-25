@@ -30,8 +30,10 @@ namespace helpers
 			std::ostream_iterator<T>(std::cout, ", "));
 		std::cout << '\n';*/
 
-		std::for_each(container.begin(), container.end(), [&sep](const T& v)
-			{ std::cout << v << sep; });
+		auto it = container.begin();
+		std::cout << *it++;
+		std::for_each(it, container.end(), [&sep](const T& v)
+			{ std::cout << sep << v; });
 		std::cout << '\n';
 	}
 
