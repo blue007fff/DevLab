@@ -3,8 +3,12 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <sstream>
 #include <format>
 #include <span>
+#include <ctime>
+#include <time.h>
+#include <chrono>
 
 namespace helpers
 {
@@ -42,5 +46,19 @@ namespace helpers
 	{
 		using value_type = typename T::value_type;
 		PrintContainer(std::span<const value_type>(container.begin(), container.end()), sep);
+	}
+
+	template <typename T = void>
+	std::tm GetLocaleTime()
+	{
+		auto now = std::chrono::system_clock::now();
+		auto now_time_t = std::chrono::system_clock::to_time_t(now);
+		std::tm localTime;
+		localtime_s(&localTime, &now_time_t);
+
+		/*std::ostringstream oss;
+		oss << std::put_time(&localTime, "%c");
+		return oss.str();*/
+		return localTime;
 	}
 }
