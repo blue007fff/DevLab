@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CodepageTest", "CodepageTes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LocaleTest", "LocaleTest\LocaleTest.vcxproj", "{654AAF31-2D2F-43D9-B742-EB7F117F55C3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "placement_new", "placement_new\placement_new.vcxproj", "{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -95,6 +97,14 @@ Global
 		{654AAF31-2D2F-43D9-B742-EB7F117F55C3}.Release|x64.Build.0 = Release|x64
 		{654AAF31-2D2F-43D9-B742-EB7F117F55C3}.Release|x86.ActiveCfg = Release|Win32
 		{654AAF31-2D2F-43D9-B742-EB7F117F55C3}.Release|x86.Build.0 = Release|Win32
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Debug|x64.ActiveCfg = Debug|x64
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Debug|x64.Build.0 = Debug|x64
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Debug|x86.ActiveCfg = Debug|Win32
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Debug|x86.Build.0 = Debug|Win32
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Release|x64.ActiveCfg = Release|x64
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Release|x64.Build.0 = Release|x64
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Release|x86.ActiveCfg = Release|Win32
+		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
