@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "allocator", "allocator\allo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "memory", "memory", "{D33005DE-B513-4226-BC92-A37A24F9C13C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "allocator_custom", "allocator_custom\allocator_custom.vcxproj", "{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -117,6 +119,14 @@ Global
 		{A603BF6C-B262-4D48-BCD3-FBB610AF7CFB}.Release|x64.Build.0 = Release|x64
 		{A603BF6C-B262-4D48-BCD3-FBB610AF7CFB}.Release|x86.ActiveCfg = Release|Win32
 		{A603BF6C-B262-4D48-BCD3-FBB610AF7CFB}.Release|x86.Build.0 = Release|Win32
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Debug|x64.ActiveCfg = Debug|x64
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Debug|x64.Build.0 = Debug|x64
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Debug|x86.ActiveCfg = Debug|Win32
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Debug|x86.Build.0 = Debug|Win32
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Release|x64.ActiveCfg = Release|x64
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Release|x64.Build.0 = Release|x64
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Release|x86.ActiveCfg = Release|Win32
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -130,6 +140,7 @@ Global
 		{654AAF31-2D2F-43D9-B742-EB7F117F55C3} = {6FECE71B-7977-4153-A989-112FC1044B1D}
 		{C934CBC4-71B1-4BE6-ACCE-76F859962AF1} = {D33005DE-B513-4226-BC92-A37A24F9C13C}
 		{A603BF6C-B262-4D48-BCD3-FBB610AF7CFB} = {D33005DE-B513-4226-BC92-A37A24F9C13C}
+		{34A1FC6D-2CFE-448B-9274-48A0CC2AF375} = {D33005DE-B513-4226-BC92-A37A24F9C13C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7DDA04F-B0F9-4348-A0E2-61B3C0285E39}
