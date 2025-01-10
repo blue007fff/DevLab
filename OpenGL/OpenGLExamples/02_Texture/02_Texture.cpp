@@ -19,6 +19,7 @@ std::filesystem::path GetExecutablePath() {
     return std::filesystem::path(buffer);
 }
 
+GLuint CreateShader(std::string_view vsCode, std::string_view fsCode);
 void CheckShaderCompileErrors(uint32_t shader);
 GLuint CreateTexture(std::filesystem::path relativePath);
 
@@ -76,27 +77,7 @@ class Scene
 public:
     void Init()
     {
-        // 셰이더 컴파일
-        GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-        glCompileShader(vertexShader);
-        CheckShaderCompileErrors(vertexShader);
-
-        GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-        glCompileShader(fragmentShader);
-        CheckShaderCompileErrors(fragmentShader);
-
-        // 셰이더 프로그램 생성 및 링크
-        m_shaderID = glCreateProgram();
-        glAttachShader(m_shaderID, vertexShader);
-        glAttachShader(m_shaderID, fragmentShader);
-        glLinkProgram(m_shaderID);
-        CheckShaderCompileErrors(m_shaderID);
-
-        // 셰이더 삭제
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
+        m_shaderID = CreateShader(vertexShaderSource, fragmentShaderSource);
 
         // load images
         stbi_set_flip_vertically_on_load(1);
@@ -183,6 +164,57 @@ public:
 	GLuint m_texID1{ 0 };
 }g_scene;
 
+GLuint CreateShader(std::string_view vsCode, std::string_view fsCode)
+{
+    // 셰이더 컴파일
+    GLuint vsID = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vsID, 1, &vertexShaderSource, nullptr);
+    glCompileShader(vsID);
+    CheckShaderCompileErrors(vsID);
+
+    GLuint fsID = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fsID, 1, &fragmentShaderSource, nullptr);
+    glCompileShader(fsID);
+    CheckShaderCompileErrors(fsID);
+
+    // 셰이더 프로그램 생성 및 링크
+    GLuint progID = glCreateProgram();
+    glAttachShader(progID, vsID);
+    glAttachShader(progID, fsID);
+    glLinkProgram(progID);
+    CheckShaderCompileErrors(progID);
+
+    // 셰이더 삭제
+    glDeleteShader(vsID);
+    glDeleteShader(fsID);
+
+    return progID;
+}
+
+void CheckShaderCompileErrors(uint32_t shader)
+{
+    int success;
+    char infoLog[1024];
+    if (glIsShader(shader))
+    {
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+            spdlog::error("SHADER_COMPILATION_ERROR: {}", infoLog);
+        }
+    }
+    else if (glIsProgram(shader))
+    {
+        glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+            spdlog::error("PROGRAM_LINKING_ERROR: {}", infoLog);
+        }
+    }
+}
+
 GLuint CreateTexture(std::filesystem::path relativePath)
 {
     GLuint texID{ 0 };
@@ -218,30 +250,6 @@ GLuint CreateTexture(std::filesystem::path relativePath)
     }
     stbi_image_free(data);
     return texID;
-}
-
-void CheckShaderCompileErrors(uint32_t shader)
-{
-    int success;
-    char infoLog[1024];
-    if(glIsShader(shader))
-    {
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-            spdlog::error("SHADER_COMPILATION_ERROR: {}", infoLog);
-        }
-    }
-    else if (glIsProgram(shader))
-    {
-        glGetProgramiv(shader, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-            spdlog::error("PROGRAM_LINKING_ERROR: {}", infoLog);
-        }
-    }
 }
 
 // 콜백 함수: 창 크기 변경 시 호출
