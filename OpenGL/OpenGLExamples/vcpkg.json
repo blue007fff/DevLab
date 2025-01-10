@@ -1,0 +1,22 @@
+{
+  "name": "example-project",
+  "version": "1.0.0",
+  "dependencies": [
+    {
+      "name": "spdlog"
+    },
+    {
+      "name": "glfw3"
+    },
+	{
+      "name": "glm"
+    },
+    {
+      "name": "imgui",
+      "features": [
+        "opengl3-binding",
+        "glfw-binding"
+      ]
+    }    
+  ]
+}
