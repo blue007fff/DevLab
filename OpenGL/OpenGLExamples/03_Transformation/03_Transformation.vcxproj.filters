@@ -21,12 +21,12 @@
     <ClCompile Include="03_Transformation.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\vcpkg\OpenglSamples\glad\src\gl.c">
+    <ClCompile Include="..\glad\src\gl.c">
       <Filter>glad</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\vcpkg\OpenglSamples\glad\include\glad\gl.h">
+    <ClInclude Include="..\glad\include\glad\gl.h">
       <Filter>glad</Filter>
     </ClInclude>
   </ItemGroup>

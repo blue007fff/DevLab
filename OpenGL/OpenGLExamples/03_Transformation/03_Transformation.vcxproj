@@ -144,11 +144,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\vcpkg\OpenglSamples\glad\src\gl.c" />
+    <ClCompile Include="..\glad\src\gl.c" />
     <ClCompile Include="03_Transformation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\vcpkg\OpenglSamples\glad\include\glad\gl.h" />
+    <ClInclude Include="..\glad\include\glad\gl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

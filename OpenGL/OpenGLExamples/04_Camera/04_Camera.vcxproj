@@ -144,12 +144,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\vcpkg\OpenglSamples\glad\src\gl.c" />
+    <ClCompile Include="..\glad\src\gl.c" />
     <ClCompile Include="04_Camera.cpp" />
     <ClCompile Include="Camera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\vcpkg\OpenglSamples\glad\include\glad\gl.h" />
+    <ClInclude Include="..\glad\include\glad\gl.h" />
     <ClInclude Include="Camera.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
