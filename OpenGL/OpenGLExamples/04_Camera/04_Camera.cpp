@@ -426,6 +426,22 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     g_scene.m_lastMousePoint = currpos;
 }
 
+// 마우스 휠 스크롤 콜백 함수
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    // yoffset 값이 +1이면 휠을 위로, -1이면 아래로 스크롤한 것입니다.
+    // xoffset은 수평 스크롤에 대한 정보입니다.
+    if (yoffset > 0)
+    {
+        g_scene.m_camera.Zoom(0.02f);
+    }
+    else
+    {
+        g_scene.m_camera.Zoom(-0.02f);
+    }
+}
+
+
 int main()
 {
     if (!glfwInit()) {
@@ -455,6 +471,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, cursorPositionCallback);
+    glfwSetScrollCallback(window, scrollCallback);
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);

@@ -23,10 +23,12 @@ public:
 	void MoveUp(float move);
 	void Turn(float amount);
 
+	void Trackball(int w, int h, glm::vec2 mousePrev, glm::vec2 mouseCurr);
+	void Zoom(float zoomRatio);
+
 	glm::mat4 GetViewMatrix() const;
 	glm::mat4 GetTransformation() const;
 
-	void Trackball(int w, int h, glm::vec2 mousePrev, glm::vec2 mouseCurr);
 
 private:
 	glm::vec3 m_pos{ 0.0f, 0.0f, 0.0f };

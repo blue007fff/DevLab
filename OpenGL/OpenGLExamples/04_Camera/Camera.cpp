@@ -155,3 +155,17 @@ void Camera::Trackball(int w, int h, glm::vec2 mousePrev, glm::vec2 mouseCurr)
 	m_quat = glm::quat_cast(tf);
 	m_quat = glm::normalize(m_quat); // 오차 보정
 }
+
+void Camera::Zoom(float zoomRatio)
+{
+	//float zoomRatio = 0.01;
+	glm::vec3 lookat = GetLookAt();
+
+	float zoom = 1.0f - fabs(zoomRatio);
+	if (zoomRatio > 0.0f) // zoom=out
+		m_lookDist *= zoom;
+	else // zoom-in
+		m_lookDist *= 1.0f / zoom;
+
+	m_pos = lookat - GetFoward() * GetLookDist();
+}
