@@ -16,6 +16,14 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h> // 파일 싱크 사용
 
+#pragma warning(push)            // 현재 경고 상태 저장
+#pragma warning(disable : 4996)  // C4996: 사용되지 않음(deprecated) 경고 비활성화
+#pragma warning(disable : 4305)  // C4305: 데이터 손실 경고 비활성화 (축소 변환)
+#pragma warning(disable : 4244)  // C4244: 데이터 손실 경고 비활성화 (정수/실수 변환)
+#define PAR_SHAPES_IMPLEMENTATION
+#include "par_shapes.h"
+#pragma warning(pop)
+
 #include "Camera.h"
 
 std::filesystem::path GetExecutablePath() {
@@ -74,6 +82,7 @@ struct Mesh
     }
 };
 
+Mesh CreateMeshFromParShape(par_shapes_mesh* shape);
 Mesh CreateCubeMesh();
 Mesh CreateCylinderMesh(int slices = 32, float height = 1.0f, float radius = 0.5f);
 Mesh CreateSphereMesh(int slices = 32, int stacks = 16, float radius = 0.5f);
@@ -150,7 +159,7 @@ void main()
     vec3 albedo =  mix(texColor1, texColor2, 0.5).rgb;
     albedo = mix(fs_in.color, albedo, 0.7);
     //albedo = fs_in.color;
-    albedo = vec3(0.5, 0.5, 0.5);
+    //albedo = vec3(0.5, 0.5, 0.5);
     //FragColor = vec4(albedo, 1.0);
     //return;
 
@@ -187,7 +196,7 @@ public:
     void Init()
     {
         glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT); // Cull the front faces
+        glCullFace(GL_BACK); // Cull the front faces
 
         m_camera.SetPos(glm::vec3(0, -5, 0));
         glm::quat camquat = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -345,6 +354,7 @@ public:
 
 Mesh CreateCubeMesh()
 {
+#if 1
     Mesh mesh;
     float size = 0.5f;
     mesh.m_vertices = std::vector<Vertex>{
@@ -388,153 +398,56 @@ Mesh CreateCubeMesh()
     mesh.m_indices = std::vector<uint32_t>{
          0, 2, 1, 2, 3, 1,          // Positive X side         
          4, 5, 6, 5, 7, 6,          // Negative X side         
-         8, 10, 9, 10, 11, 9,       // Positive Y side         
-         12, 13, 14, 13, 15, 14,    // Negative Y side         
-         16, 18, 17, 18, 19, 17,    // Positive Z side         
-         20, 21, 22, 21, 23, 22,23  // Negative Z side
+         8, 9, 10, 10, 9, 11,       // Positive Y side         
+         12, 14, 13, 13, 14, 15,    // Negative Y side         
+         16, 17, 18, 18, 17, 19,    // Positive Z side         
+         20, 22, 21, 21, 22, 23  // Negative Z side
     };
 
     return mesh;
+#endif
+
+   
 }
 
 Mesh CreateCylinderMesh(int slices /*= 32*/, float height /*= 1.0f*/, float radius /*= 0.5f*/)
 {
-    Mesh mesh;
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    float halfHeight = height * 0.5f;
-    float angleStep = 2.0f * 3.141592f / slices;
-
-    // Top cap center vertex (z-axis up)
-    vertices.push_back({ {0.0f, 0.0f, halfHeight}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 0.5f} });
-
-    // Bottom cap center vertex (z-axis up)
-    vertices.push_back({ {0.0f, 0.0f, -halfHeight}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 0.5f} });
-
-    // Generate vertices for the cylinder sides and caps (z-axis up)
-    for (int i = 0; i <= slices; ++i)
+    par_shapes_mesh* shape = par_shapes_create_cylinder(12, 2);
+    par_shapes_scale(shape, radius, radius, 1.0f);
+    Mesh mesh = CreateMeshFromParShape(shape);
+    for (auto& v : mesh.m_vertices)
     {
-        float angle = i * angleStep;
-        float x = cos(angle) * radius;
-        float y = sin(angle) * radius;
-
-        // Top cap vertex (z-axis up) with corrected texture coordinates
-        vertices.push_back({ {x, y, halfHeight}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {x * 0.5f + 0.5f, y * 0.5f + 0.5f} });
-
-        // Bottom cap vertex (z-axis up) with corrected texture coordinates
-        // Invert the texture y-coordinate for the bottom cap to avoid flipping
-        vertices.push_back({ {x, y, -halfHeight}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {x * 0.5f + 0.5f, -(y * 0.5f + 0.5f)} });
-
-        // Side vertex (top and bottom for normal computation, z-axis up)
-        glm::vec3 normal = glm::normalize(glm::vec3(x, y, 0.0f)); // Normals should be in the x-y plane
-        vertices.push_back({ {x, y, halfHeight}, normal, {1.0f, 0.0f, 0.0f}, {static_cast<float>(i) / slices, 1.0f} });
-        vertices.push_back({ {x, y, -halfHeight}, normal, {1.0f, 0.0f, 0.0f}, {static_cast<float>(i) / slices, 0.0f} });
+        std::swap(v.texCoord.x, v.texCoord.y);
     }
-
-    // Generate indices for the top and bottom caps
-    for (int i = 0; i < slices; ++i)
-    {
-        int topCenterIndex = 0;
-        int bottomCenterIndex = 1;
-        int topVertexIndex = 2 + i * 4;
-        int bottomVertexIndex = 3 + i * 4;
-
-        // Top cap triangle
-        indices.push_back(topCenterIndex);
-        indices.push_back(topVertexIndex);
-        indices.push_back(topVertexIndex + 4);
-
-        // Bottom cap triangle
-        indices.push_back(bottomCenterIndex);
-        indices.push_back(bottomVertexIndex + 4);
-        indices.push_back(bottomVertexIndex);
-    }
-
-    // Generate indices for the sides
-    for (int i = 0; i < slices; ++i)
-    {
-        int sideTop1 = 4 + i * 4;
-        int sideBottom1 = 5 + i * 4;
-        int sideTop2 = 4 + (i + 1) * 4;
-        int sideBottom2 = 5 + (i + 1) * 4;
-
-        indices.push_back(sideTop1);
-        indices.push_back(sideBottom1);
-        indices.push_back(sideTop2);
-
-        indices.push_back(sideBottom1);
-        indices.push_back(sideBottom2);
-        indices.push_back(sideTop2);
-    }
-
-    mesh.m_vertices = vertices;
-    mesh.m_indices = indices;
-
+    par_shapes_free_mesh(shape);
     return mesh;
 }
+
 Mesh CreateSphereMesh(int slices/* = 32*/, int stacks /*= 16*/, float radius /*= 0.5f*/)
 {
-    const float M_PI = 3.141592;
-    Mesh mesh;
+	par_shapes_mesh* shape = par_shapes_create_parametric_sphere(24, 12);
+	//float axis[]{ 0, 1, 0 };
+    //par_shapes_rotate(shape, float(PAR_PI / 5.0), axis);
 
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    // Generate vertices for the sphere (using spherical coordinates)
-    for (int stack = 0; stack <= stacks; ++stack)
-    {
-        float phi = M_PI * float(stack) / float(stacks); // Latitude angle
-        float z = cos(phi) * radius; // Z component
-        float radiusAtZ = sin(phi) * radius; // Radius in the X-Y plane
-
-        for (int slice = 0; slice <= slices; ++slice)
-        {
-            float theta = 2.0f * M_PI * float(slice) / float(slices); // Longitude angle
-            float x = radiusAtZ * cos(theta); // X component
-            float y = radiusAtZ * sin(theta); // Y component
-
-            // Normal is the same as the position (normalized)
-            glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
-
-            // Texture coordinates (simple spherical mapping)
-            float u = float(slice) / float(slices);
-            float v = float(stack) / float(stacks);
-
-            vertices.push_back({ {x, y, z}, normal, {1.0f, 0.0f, 0.0f}, {u, 1.0f-v} });
-        }
+	Mesh mesh = CreateMeshFromParShape(shape);
+	for (auto& v : mesh.m_vertices)
+	{
+        std::swap(v.texCoord.x, v.texCoord.y);
+        v.texCoord.y = 1.0f - v.texCoord.y;
     }
-
-    // Generate indices for the sphere's triangles
-    for (int stack = 0; stack < stacks; ++stack)
-    {
-        for (int slice = 0; slice < slices; ++slice)
-        {
-            int topLeft = stack * (slices + 1) + slice;
-            int topRight = topLeft + 1;
-            int bottomLeft = (stack + 1) * (slices + 1) + slice;
-            int bottomRight = bottomLeft + 1;
-
-            // Top-left, top-right, bottom-left triangle
-            indices.push_back(topLeft);
-            indices.push_back(bottomLeft);
-            indices.push_back(topRight);
-
-            // Bottom-left, bottom-right, top-right triangle
-            indices.push_back(bottomLeft);
-            indices.push_back(bottomRight);
-            indices.push_back(topRight);
-        }
-    }
-
-    mesh.m_vertices = vertices;
-    mesh.m_indices = indices;
-
-    return mesh;
+    par_shapes_free_mesh(shape);
+    return mesh;   
 }
+
 Mesh CreatePlaneMesh()
 {
+    par_shapes_mesh* shape = par_shapes_create_plane(1, 1);
+    par_shapes_translate(shape, -0.5f, -0.5f, 0.0f);
+    Mesh mesh = CreateMeshFromParShape(shape);
+    par_shapes_free_mesh(shape);
+    return mesh;
+
+#if 0
     Mesh mesh;
     float size = 1.0f;
     float width = size;
@@ -552,160 +465,90 @@ Mesh CreatePlaneMesh()
     };
 
     return mesh;
+#endif
+   
+}
+
+Mesh CreateMeshFromParShape(par_shapes_mesh* shape)
+{
+	Mesh mesh;
+	mesh.m_vertices.resize(shape->npoints);
+	mesh.m_indices.resize(shape->ntriangles * 3);
+
+	for (int i = 0; i < shape->npoints; ++i)
+	{
+		Vertex v;
+		v.pos = glm::vec3(shape->points[i * 3 + 0], shape->points[i * 3 + 1], shape->points[i * 3 + 2]);
+		v.normal = glm::vec3(shape->normals[i * 3 + 0], shape->normals[i * 3 + 1], shape->normals[i * 3 + 2]);
+		v.texCoord = glm::vec2(shape->tcoords[i * 2 + 0], shape->tcoords[i * 2 + 1]);
+		v.color = glm::vec3(1.0f, 1.0f, 1.0f);
+		mesh.m_vertices[i] = v;
+	}
+	for (int i = 0; i < shape->ntriangles; ++i)
+	{
+		mesh.m_indices[i * 3 + 0] = shape->triangles[i * 3 + 0];
+		mesh.m_indices[i * 3 + 1] = shape->triangles[i * 3 + 1];
+		mesh.m_indices[i * 3 + 2] = shape->triangles[i * 3 + 2];
+	}
+	return mesh;
 }
 
 Mesh CreateHemisphereMesh(int slices /*= 32*/, int stacks /*= 16*/, float radius /*= 0.5f*/)
 {
-    float M_PI = 3.141592f;
-    Mesh mesh;
+    par_shapes_mesh* shape = par_shapes_create_hemisphere(24, 12);
+    float axis[]{ 1, 0, 0 };
+    par_shapes_rotate(shape, float(PAR_PI / 2.0), axis);
 
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    // Generate vertices for the hemisphere (top half)
-    for (int stack = 0; stack <= stacks / 2; ++stack)
-    {
-        float phi = M_PI * float(stack) / float(stacks / 2); // Latitude angle for the top half
-        float y = cos(phi) * radius; // Y component
-        float radiusAtY = sin(phi) * radius; // Radius in the X-Z plane
-
-        for (int slice = 0; slice <= slices; ++slice)
-        {
-            float theta = 2.0f * M_PI * float(slice) / float(slices); // Longitude angle
-            float x = radiusAtY * cos(theta); // X component
-            float z = radiusAtY * sin(theta); // Z component
-
-            // Normal is the same as the position (normalized)
-            glm::vec3 normal = glm::normalize(glm::vec3(x, y, z));
-
-            // Texture coordinates (simple spherical mapping)
-            float u = float(slice) / float(slices);
-            float v = float(stack) / float(stacks / 2); // Adjust for the hemisphere's top half
-
-            vertices.push_back({ {x, y, z}, normal, {1.0f, 0.0f, 0.0f}, {u, v} });
-        }
-    }
-
-    // Add the flat bottom part (the circular base of the hemisphere)
-    int bottomCenterIndex = vertices.size();
-    vertices.push_back({ {0.0f, 0.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 0.5f} }); // Bottom center vertex
-
-    // Generate vertices for the bottom circle
-    for (int slice = 0; slice <= slices; ++slice)
-    {
-        float theta = 2.0f * M_PI * float(slice) / float(slices); // Longitude angle
-        float x = radius * cos(theta); // X component (on the plane)
-        float z = radius * sin(theta); // Z component (on the plane)
-
-        vertices.push_back({ {x, 0.0f, z}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {float(slice) / float(slices), 1.0f} });
-    }
-
-    // Generate indices for the hemisphere's triangles
-    for (int stack = 0; stack < stacks / 2; ++stack)
-    {
-        for (int slice = 0; slice < slices; ++slice)
-        {
-            int topLeft = stack * (slices + 1) + slice;
-            int topRight = topLeft + 1;
-            int bottomLeft = (stack + 1) * (slices + 1) + slice;
-            int bottomRight = bottomLeft + 1;
-
-            // Top-left, top-right, bottom-left triangle
-            indices.push_back(topLeft);
-            indices.push_back(bottomLeft);
-            indices.push_back(topRight);
-
-            // Bottom-left, bottom-right, top-right triangle
-            indices.push_back(bottomLeft);
-            indices.push_back(bottomRight);
-            indices.push_back(topRight);
-        }
-    }
-
-    // Generate indices for the bottom circle (the flat base)
-    int startIndex = vertices.size() - (slices + 1); // First vertex of the bottom circle
-    for (int slice = 0; slice < slices; ++slice)
-    {
-        int current = startIndex + slice;
-        int next = startIndex + slice + 1;
-
-        indices.push_back(bottomCenterIndex);
-        indices.push_back(current);
-        indices.push_back(next);
-    }
-
-    mesh.m_vertices = vertices;
-    mesh.m_indices = indices;
-
+    Mesh mesh = CreateMeshFromParShape(shape);
+    par_shapes_free_mesh(shape);
     return mesh;
 }
+
+#if 0
+
+static void par_shapes__circleplane(float const* uv, float* xyz, void* userdata)
+{
+    /*float r = uv[1] * 0.5f + 0.5f;
+    float theta = uv[0] * 2 * PAR_PI;
+    xyz[0] = r * sinf(theta);
+    xyz[1] = r * cosf(theta);
+    xyz[2] = 0.0f;*/
+    float r = uv[1] * 0.5f + 0.5f;
+    float theta = uv[0] * 2 * PAR_PI;
+    xyz[0] = r * sinf(theta);
+    xyz[1] = r * cosf(theta);
+    xyz[2] = 0.0f;
+}
+
+par_shapes_mesh* par_shapes_create_mydisk(int slices, int stacks)
+{
+    if (slices < 3 || stacks < 3) {
+        return 0;
+    }
+    par_shapes_mesh* m = par_shapes_create_parametric(par_shapes__circleplane,
+        slices, stacks, 0);
+    par_shapes_remove_degenerate(m, par_shapes__epsilon_degenerate_sphere);
+    return m;
+}
+#endif // 0
+
 
 Mesh CreateTorusMesh(int slices /*= 32*/, int stacks/* = 16*/, float radius/* = 0.5f*/, float tubeRadius /*= 0.2f*/)
-{
-    float M_PI = 3.141592f;
-
-    Mesh mesh;
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-
-    // Generate vertices for the torus (using two angles: theta for the center circle, phi for the tube)
-    for (int stack = 0; stack <= stacks; ++stack)
-    {
-        float phi = 2.0f * M_PI * float(stack) / float(stacks); // Angle for the tube (longitude)
-        float cosPhi = cos(phi);
-        float sinPhi = sin(phi);
-
-        for (int slice = 0; slice <= slices; ++slice)
-        {
-            float theta = 2.0f * M_PI * float(slice) / float(slices); // Angle for the center circle (latitude)
-            float cosTheta = cos(theta);
-            float sinTheta = sin(theta);
-
-            // Calculate position based on torus parametric equations
-            float x = (radius + tubeRadius * cosPhi) * cosTheta;
-            float y = (radius + tubeRadius * cosPhi) * sinTheta;
-            float z = tubeRadius * sinPhi;
-
-            // Normal is the normalized vector from the center of the torus
-            glm::vec3 normal = glm::normalize(glm::vec3(x - radius * cosTheta, y - radius * sinTheta, z));
-
-            // Texture coordinates (cylinder-like mapping)
-            float u = float(slice) / float(slices);
-            float v = float(stack) / float(stacks);
-
-            vertices.push_back({ {x, y, z}, normal, {1.0f, 0.0f, 0.0f}, {u, v} });
-        }
-    }
-
-    // Generate indices for the torus' triangles
-    for (int stack = 0; stack < stacks; ++stack)
-    {
-        for (int slice = 0; slice < slices; ++slice)
-        {
-            int topLeft = stack * (slices + 1) + slice;
-            int topRight = topLeft + 1;
-            int bottomLeft = (stack + 1) * (slices + 1) + slice;
-            int bottomRight = bottomLeft + 1;
-
-            // Top-left, top-right, bottom-left triangle
-            indices.push_back(topLeft);
-            indices.push_back(bottomLeft);
-            indices.push_back(topRight);
-
-            // Bottom-left, bottom-right, top-right triangle
-            indices.push_back(bottomLeft);
-            indices.push_back(bottomRight);
-            indices.push_back(topRight);
-        }
-    }
-
-    mesh.m_vertices = vertices;
-    mesh.m_indices = indices;
-
-    return mesh;
+{  
+    par_shapes_mesh* shape = par_shapes_create_torus(24, 24, 0.5);
+    //par_shapes_mesh* shape = par_shapes_create_parametric_disk(24, 2);
+    //par_shapes_mesh* shape = par_shapes_create_mydisk(24, 12);    
+    //par_shapes_mesh* shape = par_shapes_create_hemisphere(24, 12);
+    Mesh mesh = CreateMeshFromParShape(shape);
+    //mesh = CreateHemisphereMesh(32, 16);
+    //for (auto& v : mesh.m_vertices)
+    //{
+    //    std::swap(v.texCoord.x, v.texCoord.y);// v.pos.z = 0.0f;
+    //    v.texCoord.y = 1.0f - v.texCoord.y;
+    //}
+    par_shapes_free_mesh(shape);
+    return mesh;    
 }
-
 
 GLuint CreateShader(std::string_view vsCode, std::string_view fsCode)
 {
@@ -807,6 +650,11 @@ void processInput(GLFWwindow* window, double deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
+   
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
 
 	// 이동 속도는 deltaTime으로 조정
 	float velocity = 3.0f * (float)deltaTime;

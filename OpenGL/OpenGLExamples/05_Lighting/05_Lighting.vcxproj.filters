@@ -35,5 +35,8 @@
     <ClInclude Include="..\glad\include\glad\gl.h">
       <Filter>glad</Filter>
     </ClInclude>
+    <ClInclude Include="par_shapes.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
