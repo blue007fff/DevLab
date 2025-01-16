@@ -16,15 +16,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h> // 파일 싱크 사용
 
-#pragma warning(push)            // 현재 경고 상태 저장
-#pragma warning(disable : 4996)  // C4996: 사용되지 않음(deprecated) 경고 비활성화
-#pragma warning(disable : 4305)  // C4305: 데이터 손실 경고 비활성화 (축소 변환)
-#pragma warning(disable : 4244)  // C4244: 데이터 손실 경고 비활성화 (정수/실수 변환)
-#define PAR_SHAPES_IMPLEMENTATION
-#include "par_shapes.h"
-#pragma warning(pop)
-
 #include "Camera.h"
+#include "Mesh.h"
 
 std::filesystem::path GetExecutablePath() {
     // Windows에서 실행 파일 경로 얻기
@@ -33,63 +26,6 @@ std::filesystem::path GetExecutablePath() {
     return std::filesystem::path(buffer);
 }
 
-struct Vertex
-{
-    glm::vec3 pos;
-    glm::vec3 normal;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-};
-
-struct Mesh
-{
-    std::vector<Vertex> m_vertices;
-    std::vector<uint32_t> m_indices;
-    GLuint m_vbo{ 0 };
-    GLuint m_ebo{ 0 };
-
-    ~Mesh() {
-        glDeleteBuffers(1, &m_vbo);
-        glDeleteBuffers(1, &m_ebo);
-    }
-
-    void UpdateBuffer() {
-        if (m_vbo == 0) glGenBuffers(1, &m_vbo);
-        if (m_ebo == 0) glGenBuffers(1, &m_ebo);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), GL_STATIC_DRAW);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * m_indices.size(), m_indices.data(), GL_STATIC_DRAW);
-    }
-
-    void Draw() {
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-
-        // 버텍스 속성 설정
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoord));
-        glEnableVertexAttribArray(3);
-
-        glDrawElements(GL_TRIANGLES, (uint32_t)m_indices.size(), GL_UNSIGNED_INT, (void*)0);
-    }
-};
-
-Mesh CreateMeshFromParShape(par_shapes_mesh* shape);
-Mesh CreateCubeMesh();
-Mesh CreateCylinderMesh(int slices = 32, float height = 1.0f, float radius = 0.5f);
-Mesh CreateSphereMesh(int slices = 32, int stacks = 16, float radius = 0.5f);
-Mesh CreateHemisphereMesh(int slices = 32, int stacks = 16, float radius = 0.5f);
-Mesh CreateTorusMesh(int slices = 32, int stacks = 16, float radius = 0.5f, float tubeRadius = 0.2f);
-
-Mesh CreatePlaneMesh();
 GLuint CreateShader(std::string_view vsCode, std::string_view fsCode);
 void CheckShaderCompileErrors(uint32_t shader);
 GLuint CreateTexture(std::filesystem::path relativePath);
@@ -159,7 +95,7 @@ void main()
     vec3 albedo =  mix(texColor1, texColor2, 0.5).rgb;
     albedo = mix(fs_in.color, albedo, 0.7);
     //albedo = fs_in.color;
-    //albedo = vec3(0.5, 0.5, 0.5);
+    albedo = vec3(0.5, 0.5, 0.5);
     //FragColor = vec4(albedo, 1.0);
     //return;
 
@@ -195,8 +131,8 @@ class Scene
 public:
     void Init()
     {
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK); // Cull the front faces
+        //glEnable(GL_CULL_FACE);
+        //glCullFace(GL_BACK); // Cull the front faces
 
         m_camera.SetPos(glm::vec3(0, -5, 0));
         glm::quat camquat = glm::angleAxis(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -222,7 +158,8 @@ public:
         // load images
         stbi_set_flip_vertically_on_load(1);
         m_texID0 = CreateTexture("../../assets/images/awesomeface.png");
-        m_texID1 = CreateTexture("../../assets/images/container.jpg");
+        //m_texID1 = CreateTexture("../../assets/images/container.jpg");
+        m_texID1 = CreateTexture("../../assets/images/debug.jpg");        
 
         glGenVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
@@ -233,16 +170,16 @@ public:
         m_planeMesh = CreatePlaneMesh();
         m_planeMesh.UpdateBuffer();   
 
-        m_cylinderMesh = CreateCylinderMesh();
+        m_cylinderMesh = CreateCylinderMesh(0.5f, 1.0f);
         m_cylinderMesh.UpdateBuffer();
 
-        m_sphereMesh = CreateSphereMesh();
+        m_sphereMesh = CreateSphereMesh(0.5f);
         m_sphereMesh.UpdateBuffer();
 
-        m_hsphereMesh = CreateHemisphereMesh();
+        m_hsphereMesh = CreateHemisphereMesh(0.5f);
         m_hsphereMesh.UpdateBuffer();
 
-        m_torusMesh = CreateTorusMesh();
+        m_torusMesh = CreateTorusMesh(0.6, 0.3);
         m_torusMesh.UpdateBuffer();
     }
     void Destory()
@@ -319,9 +256,7 @@ public:
             glm::mat4 modelmat = s;
             glUniformMatrix4fv(m_modelLoc, 1, GL_FALSE, glm::value_ptr(modelmat));
             m_planeMesh.Draw();
-        }
-
-        
+        }        
     }
 
 public:
@@ -351,204 +286,6 @@ public:
     Mesh m_torusMesh;
 
 }g_scene;
-
-Mesh CreateCubeMesh()
-{
-#if 1
-    Mesh mesh;
-    float size = 0.5f;
-    mesh.m_vertices = std::vector<Vertex>{
-        // Positive X side
-       {{ size,  size,  size}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-       {{ size,  size, -size}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-       {{ size, -size,  size}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-       {{ size, -size, -size}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-
-       // Negative X side
-       {{-size,  size,  size}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
-       {{-size,  size, -size}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-       {{-size, -size,  size}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
-       {{-size, -size, -size}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-
-       // Positive Y side
-       {{ size,  size,  size}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-       {{ size,  size, -size}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-       {{-size,  size,  size}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-       {{-size,  size, -size}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-
-       // Negative Y side
-       {{ size, -size,  size}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
-       {{ size, -size, -size}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-       {{-size, -size,  size}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
-       {{-size, -size, -size}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-
-       // Positive Z side
-       {{ size,  size,  size}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-       {{-size,  size,  size}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-       {{ size, -size,  size}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-       {{-size, -size,  size}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-
-       // Negative Z side
-       {{ size,  size, -size}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-       {{-size,  size, -size}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
-       {{ size, -size, -size}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-       {{-size, -size, -size}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
-    };
-
-    mesh.m_indices = std::vector<uint32_t>{
-         0, 2, 1, 2, 3, 1,          // Positive X side         
-         4, 5, 6, 5, 7, 6,          // Negative X side         
-         8, 9, 10, 10, 9, 11,       // Positive Y side         
-         12, 14, 13, 13, 14, 15,    // Negative Y side         
-         16, 17, 18, 18, 17, 19,    // Positive Z side         
-         20, 22, 21, 21, 22, 23  // Negative Z side
-    };
-
-    return mesh;
-#endif
-
-   
-}
-
-Mesh CreateCylinderMesh(int slices /*= 32*/, float height /*= 1.0f*/, float radius /*= 0.5f*/)
-{
-    par_shapes_mesh* shape = par_shapes_create_cylinder(12, 2);
-    par_shapes_scale(shape, radius, radius, 1.0f);
-    Mesh mesh = CreateMeshFromParShape(shape);
-    for (auto& v : mesh.m_vertices)
-    {
-        std::swap(v.texCoord.x, v.texCoord.y);
-    }
-    par_shapes_free_mesh(shape);
-    return mesh;
-}
-
-Mesh CreateSphereMesh(int slices/* = 32*/, int stacks /*= 16*/, float radius /*= 0.5f*/)
-{
-	par_shapes_mesh* shape = par_shapes_create_parametric_sphere(24, 12);
-	//float axis[]{ 0, 1, 0 };
-    //par_shapes_rotate(shape, float(PAR_PI / 5.0), axis);
-
-	Mesh mesh = CreateMeshFromParShape(shape);
-	for (auto& v : mesh.m_vertices)
-	{
-        std::swap(v.texCoord.x, v.texCoord.y);
-        v.texCoord.y = 1.0f - v.texCoord.y;
-    }
-    par_shapes_free_mesh(shape);
-    return mesh;   
-}
-
-Mesh CreatePlaneMesh()
-{
-    par_shapes_mesh* shape = par_shapes_create_plane(1, 1);
-    par_shapes_translate(shape, -0.5f, -0.5f, 0.0f);
-    Mesh mesh = CreateMeshFromParShape(shape);
-    par_shapes_free_mesh(shape);
-    return mesh;
-
-#if 0
-    Mesh mesh;
-    float size = 1.0f;
-    float width = size;
-    float height = size;
-
-    mesh.m_vertices = std::vector<Vertex>{
-        {{-width / 2, -height / 2, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}}, // 좌하
-        {{ width / 2, -height / 2, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}}, // 우하
-        {{ width / 2,  height / 2, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}}, // 우상
-        {{-width / 2,  height / 2, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}}, // 좌상
-    };
-
-    mesh.m_indices = std::vector<uint32_t>{
-        0, 1, 2, 0, 2, 3,
-    };
-
-    return mesh;
-#endif
-   
-}
-
-Mesh CreateMeshFromParShape(par_shapes_mesh* shape)
-{
-	Mesh mesh;
-	mesh.m_vertices.resize(shape->npoints);
-	mesh.m_indices.resize(shape->ntriangles * 3);
-
-	for (int i = 0; i < shape->npoints; ++i)
-	{
-		Vertex v;
-		v.pos = glm::vec3(shape->points[i * 3 + 0], shape->points[i * 3 + 1], shape->points[i * 3 + 2]);
-		v.normal = glm::vec3(shape->normals[i * 3 + 0], shape->normals[i * 3 + 1], shape->normals[i * 3 + 2]);
-		v.texCoord = glm::vec2(shape->tcoords[i * 2 + 0], shape->tcoords[i * 2 + 1]);
-		v.color = glm::vec3(1.0f, 1.0f, 1.0f);
-		mesh.m_vertices[i] = v;
-	}
-	for (int i = 0; i < shape->ntriangles; ++i)
-	{
-		mesh.m_indices[i * 3 + 0] = shape->triangles[i * 3 + 0];
-		mesh.m_indices[i * 3 + 1] = shape->triangles[i * 3 + 1];
-		mesh.m_indices[i * 3 + 2] = shape->triangles[i * 3 + 2];
-	}
-	return mesh;
-}
-
-Mesh CreateHemisphereMesh(int slices /*= 32*/, int stacks /*= 16*/, float radius /*= 0.5f*/)
-{
-    par_shapes_mesh* shape = par_shapes_create_hemisphere(24, 12);
-    float axis[]{ 1, 0, 0 };
-    par_shapes_rotate(shape, float(PAR_PI / 2.0), axis);
-
-    Mesh mesh = CreateMeshFromParShape(shape);
-    par_shapes_free_mesh(shape);
-    return mesh;
-}
-
-#if 0
-
-static void par_shapes__circleplane(float const* uv, float* xyz, void* userdata)
-{
-    /*float r = uv[1] * 0.5f + 0.5f;
-    float theta = uv[0] * 2 * PAR_PI;
-    xyz[0] = r * sinf(theta);
-    xyz[1] = r * cosf(theta);
-    xyz[2] = 0.0f;*/
-    float r = uv[1] * 0.5f + 0.5f;
-    float theta = uv[0] * 2 * PAR_PI;
-    xyz[0] = r * sinf(theta);
-    xyz[1] = r * cosf(theta);
-    xyz[2] = 0.0f;
-}
-
-par_shapes_mesh* par_shapes_create_mydisk(int slices, int stacks)
-{
-    if (slices < 3 || stacks < 3) {
-        return 0;
-    }
-    par_shapes_mesh* m = par_shapes_create_parametric(par_shapes__circleplane,
-        slices, stacks, 0);
-    par_shapes_remove_degenerate(m, par_shapes__epsilon_degenerate_sphere);
-    return m;
-}
-#endif // 0
-
-
-Mesh CreateTorusMesh(int slices /*= 32*/, int stacks/* = 16*/, float radius/* = 0.5f*/, float tubeRadius /*= 0.2f*/)
-{  
-    par_shapes_mesh* shape = par_shapes_create_torus(24, 24, 0.5);
-    //par_shapes_mesh* shape = par_shapes_create_parametric_disk(24, 2);
-    //par_shapes_mesh* shape = par_shapes_create_mydisk(24, 12);    
-    //par_shapes_mesh* shape = par_shapes_create_hemisphere(24, 12);
-    Mesh mesh = CreateMeshFromParShape(shape);
-    //mesh = CreateHemisphereMesh(32, 16);
-    //for (auto& v : mesh.m_vertices)
-    //{
-    //    std::swap(v.texCoord.x, v.texCoord.y);// v.pos.z = 0.0f;
-    //    v.texCoord.y = 1.0f - v.texCoord.y;
-    //}
-    par_shapes_free_mesh(shape);
-    return mesh;    
-}
 
 GLuint CreateShader(std::string_view vsCode, std::string_view fsCode)
 {
