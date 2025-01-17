@@ -15,6 +15,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "05_Lighting", "05_Lighting\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BasicExamples", "BasicExamples", "{D8BECA9F-AC38-4525-BBEC-033A712E9515}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "A00_GLBaseProject", "A00_GLBaseProject\A00_GLBaseProject.vcxproj", "{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -63,6 +65,14 @@ Global
 		{505E1FCC-B585-4385-92B8-B76F471D9F3D}.Release|x64.Build.0 = Release|x64
 		{505E1FCC-B585-4385-92B8-B76F471D9F3D}.Release|x86.ActiveCfg = Release|Win32
 		{505E1FCC-B585-4385-92B8-B76F471D9F3D}.Release|x86.Build.0 = Release|Win32
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Debug|x64.ActiveCfg = Debug|x64
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Debug|x64.Build.0 = Debug|x64
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Debug|x86.ActiveCfg = Debug|Win32
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Debug|x86.Build.0 = Debug|Win32
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Release|x64.ActiveCfg = Release|x64
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Release|x64.Build.0 = Release|x64
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Release|x86.ActiveCfg = Release|Win32
+		{3AEDFE49-CB3B-4F27-A6A9-EAC9689D498F}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
