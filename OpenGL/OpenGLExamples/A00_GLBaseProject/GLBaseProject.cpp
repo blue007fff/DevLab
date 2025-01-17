@@ -1,4 +1,7 @@
 ﻿#include <glad/gl.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -385,13 +388,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     g_scene.m_screenSize = glm::ivec2(width, height);
 }
 
+void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
 // 키 입력 처리
 void processInput(GLFWwindow* window, double deltaTime)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, true);
-	}
-   
+    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+        // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+        return;
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -436,6 +446,11 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 // 마우스 이동 콜백 함수
 void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
 {
+    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+        // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+        return;
+    }
+
     glm::vec2 currpos = glm::vec2(xpos, ypos);
 	if (g_scene.m_mousePressed)
     {
@@ -465,6 +480,31 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     }
 }
 
+class FPSCounter
+{
+public:
+    bool update() {
+        m_frame_count++;
+        auto tp = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elasepd_time = tp - m_tp;
+        if (elasepd_time.count() > m_update_time)
+        {
+            m_fps = m_frame_count / elasepd_time.count();
+            m_frame_count = 0;
+            m_tp = tp;
+            return true;
+        }
+        return false;
+    }
+    double fps() const { return m_fps; }
+private:
+    double m_update_time = 1.0;
+    double m_fps = 0.0;
+    int m_frame_count{ 0 };
+    std::chrono::high_resolution_clock::time_point m_tp{
+        std::chrono::high_resolution_clock::now() };
+};
+
 
 int main()
 {
@@ -492,34 +532,89 @@ int main()
         spdlog::error("Failed to initialize GLAD!");
         return -1;
     }
+    glfwSwapInterval(1);  // 1로 설정하면 V-Sync가 켜짐
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
     glfwSetCursorPosCallback(window, cursorPositionCallback);
     glfwSetScrollCallback(window, scrollCallback);
+    glfwSetKeyCallback(window, KeyCallback);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+    // ImGui 스타일 설정
+    //ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
+    //ImGui::StyleColorsClassic();
+    
+	// Setup Platform/Renderer backends
+	// Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 450");
+	
 
     int width, height;
     glfwGetWindowSize(window, &width, &height);
     g_scene.Init();
     g_scene.m_screenSize = glm::ivec2(width, height);
 
+    FPSCounter fpsCounter;
     double prevTime = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
         double currTime = glfwGetTime();
         double deltTime = currTime - prevTime;
         prevTime = currTime;
-
-        // 입력 처리
-        processInput(window, deltTime);
-
-        g_scene.Draw(deltTime);
-
-        // 버퍼 교환 및 이벤트 처리
-        glfwSwapBuffers(window);
+        
         glfwPollEvents();
-    }
 
-    g_scene.Destory();
+        // Start the Dear ImGui frame
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        // Write GUI code
+        {
+            //ImGui::ShowDemoWindow(); // Show demo window! :)
+			//ImGui::ShowUserGuide();
+
+			/*// GUI 코드 작성
+			ImGui::Begin("Hello, ImGui!");
+			ImGui::Text("This is a simple ImGui example.");
+			if (ImGui::Button("Close")) {
+				glfwSetWindowShouldClose(window, 1);
+			}
+			ImGui::End();*/
+
+
+            // 평균 FPS 계산
+            fpsCounter.update();
+            ImGui::Begin("FPS Display");
+            ImGui::Text("Average FPS: %.1lf", fpsCounter.fps());
+            ImGui::End();
+		}
+
+		// 입력 처리
+		processInput(window, deltTime);
+
+		g_scene.Draw(deltTime);
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		glfwSwapBuffers(window);
+	}
+
+	g_scene.Destory();
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
     return 0;
 }
