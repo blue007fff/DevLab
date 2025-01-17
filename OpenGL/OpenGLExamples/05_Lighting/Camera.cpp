@@ -82,10 +82,16 @@ void Camera::MoveUp(float move)
 void Camera::Turn(float amount)
 {
 	//m_quat = glm::rotate(m_quat, glm::radians(amount), glm::vec3(0, 1, 0));
-	glm::quat q1 = glm::rotate(glm::quat(1, 0, 0, 0), glm::radians(amount), glm::vec3(0, 1, 0));
+	glm::quat q1 = glm::rotate(glm::quat(1, 0, 0, 0), glm::radians(amount), glm::vec3(0, -1, 0));
 	m_quat = m_quat * q1;
 }
 
+void Camera::Lookup(float amount)
+{
+	//m_quat = glm::rotate(m_quat, glm::radians(amount), glm::vec3(1, 0, 0));
+	glm::quat q1 = glm::rotate(glm::quat(1, 0, 0, 0), glm::radians(amount), glm::vec3(1, 0, 0));
+	m_quat = m_quat * q1;
+}
 glm::mat4 Camera::GetTransformation() const
 {
 	return glm::translate(glm::mat4(1), m_pos) * glm::mat4_cast(m_quat);

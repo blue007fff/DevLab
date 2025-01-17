@@ -99,6 +99,9 @@ void main()
     //FragColor = vec4(albedo, 1.0);
     //return;
 
+    if(!gl_FrontFacing)
+        albedo = vec3(0.2, 0.2, 0.8);
+
     vec3 pos = fs_in.pos;
     vec3 normal = normalize(fs_in.normal);
 
@@ -179,7 +182,7 @@ public:
         m_hsphereMesh = CreateHemisphereMesh(0.5f);
         m_hsphereMesh.UpdateBuffer();
 
-        m_torusMesh = CreateTorusMesh(0.6, 0.3);
+        m_torusMesh = CreateTorusMesh(0.6f, 0.3f);
         m_torusMesh.UpdateBuffer();
     }
     void Destory()
@@ -394,7 +397,7 @@ void processInput(GLFWwindow* window, double deltaTime)
     }
 
 	// 이동 속도는 deltaTime으로 조정
-	float velocity = 3.0f * (float)deltaTime;
+	float velocity = 5.0f * (float)deltaTime;
     float angle_velocity = 45.0f * (float)deltaTime;
 
 
@@ -403,13 +406,13 @@ void processInput(GLFWwindow* window, double deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // 뒤로 이동
 		g_scene.m_camera.MoveFoward(-velocity);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) // 왼쪽으로 이동
-		g_scene.m_camera.MoveRight(-velocity);
+		g_scene.m_camera.MoveUp(-velocity);
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) // 오른쪽으로 이동
-		g_scene.m_camera.MoveRight(velocity);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // 왼쪽으로 이동
-        g_scene.m_camera.Turn(angle_velocity);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // 오른쪽으로 이동
-        g_scene.m_camera.Turn(-angle_velocity);
+		g_scene.m_camera.MoveUp(velocity);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        g_scene.m_camera.MoveRight(-velocity);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        g_scene.m_camera.MoveRight(velocity);
 }
 
 // 마우스 버튼 콜백 함수
@@ -435,9 +438,13 @@ void cursorPositionCallback(GLFWwindow* window, double xpos, double ypos)
     glm::vec2 currpos = glm::vec2(xpos, ypos);
 	if (g_scene.m_mousePressed)
     {
-        g_scene.m_camera.Trackball(
+       /* g_scene.m_camera.Trackball(
             g_scene.m_screenSize.x, g_scene.m_screenSize.y,
-            g_scene.m_lastMousePoint, currpos);
+            g_scene.m_lastMousePoint, currpos);*/
+
+        glm::vec2 diff = currpos - g_scene.m_lastMousePoint;
+        g_scene.m_camera.Turn(diff.x / (float)g_scene.m_screenSize.x * 90.0f);
+        g_scene.m_camera.Lookup(-diff.y / (float)g_scene.m_screenSize.y * 90.0f);
 	}
     g_scene.m_lastMousePoint = currpos;
 }

@@ -22,6 +22,7 @@ public:
 	void MoveRight(float move);
 	void MoveUp(float move);
 	void Turn(float amount);
+	void Lookup(float amount);
 
 	void Trackball(int w, int h, glm::vec2 mousePrev, glm::vec2 mouseCurr);
 	void Zoom(float zoomRatio);
