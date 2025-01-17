@@ -397,3 +397,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 OpenGL/OpenGLExamples/vcpkg_installed
+OpenGL/OpenGLBasics/vcpkg_installed
