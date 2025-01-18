@@ -399,3 +399,4 @@ FodyWeavers.xsd
 OpenGL/OpenGLExamples/vcpkg_installed
 OpenGL/OpenGLBasics/vcpkg_installed
 OpenGL/GraphicsLab/vcpkg_installed
+OpenGL/GraphicsLab/00_Base/imgui.ini

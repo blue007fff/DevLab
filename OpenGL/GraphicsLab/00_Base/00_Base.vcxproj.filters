@@ -48,6 +48,9 @@
     <ClCompile Include="..\core\Utils.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\BaseApp.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\par_shapes.h">
@@ -78,6 +81,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\core\Utils.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\BaseApp.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>

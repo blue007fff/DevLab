@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\core\BaseApp.cpp" />
     <ClCompile Include="..\core\Buffer.cpp" />
     <ClCompile Include="..\core\Camera.cpp" />
     <ClCompile Include="..\core\Mesh.cpp" />
@@ -147,6 +148,7 @@
     <ClCompile Include="00_Base.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\core\BaseApp.h" />
     <ClInclude Include="..\core\Buffer.h" />
     <ClInclude Include="..\core\Camera.h" />
     <ClInclude Include="..\core\Common.h" />
