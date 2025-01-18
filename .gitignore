@@ -398,3 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 OpenGL/OpenGLExamples/vcpkg_installed
 OpenGL/OpenGLBasics/vcpkg_installed
+OpenGL/GraphicsLab/vcpkg_installed

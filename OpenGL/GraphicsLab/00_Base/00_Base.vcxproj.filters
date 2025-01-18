@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="리소스 파일">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="deps">
+      <UniqueIdentifier>{ccdce79d-33cc-4013-a105-69f635c32f40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{bf140978-e636-474e-a259-7e1dfda81faa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="00_Base.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\glad\src\gl.c">
+      <Filter>deps</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\Camera.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\Mesh.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\Texture.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\Buffer.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\ShaderProgram.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\VertexLayout.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\Utils.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\deps\par_shapes.h">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\glad\include\glad\gl.h">
+      <Filter>deps</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Camera.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Mesh.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Texture.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Common.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Buffer.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\ShaderProgram.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\VertexLayout.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Utils.h">
+      <Filter>core</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
