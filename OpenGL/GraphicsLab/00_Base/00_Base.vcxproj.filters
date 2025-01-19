@@ -51,6 +51,9 @@
     <ClCompile Include="..\core\BaseApp.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\Model.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\par_shapes.h">
@@ -84,6 +87,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\core\BaseApp.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Model.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>

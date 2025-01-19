@@ -1,12 +1,14 @@
-﻿#include "Common.h"
+﻿#pragma once
+
+#include "Common.h"
 #include "Buffer.h"
 #include "VertexLayout.h"
+#include "Texture.h"
 
 struct Vertex
 {
 	glm::vec3 pos;
 	glm::vec3 normal;
-	glm::vec3 color;
 	glm::vec2 texCoord;
 };
 
@@ -14,6 +16,12 @@ struct Mesh
 {
 	std::vector<Vertex> m_vertices;
 	std::vector<uint32_t> m_indices;
+};
+
+class Material
+{
+public:
+	gl::Texture* m_diffuseTex{ nullptr };
 };
 
 class StaticMesh
@@ -35,5 +43,4 @@ Mesh CreateCylinderMesh(float radius, float height);
 Mesh CreateSphereMesh(float radius);
 Mesh CreateHemisphereMesh(float radius);
 Mesh CreateTorusMesh(float radius, float tubeRadius);
-
 Mesh CreatePlaneMesh();

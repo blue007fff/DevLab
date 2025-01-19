@@ -8,11 +8,14 @@
     {
       "name": "glfw3"
     },
-	{
+    {
       "name": "glm"
     },
-	{
+    {
       "name": "stb"
+    },
+    {
+      "name": "assimp"
     },
     {
       "name": "imgui",
@@ -20,6 +23,6 @@
         "opengl3-binding",
         "glfw-binding"
       ]
-    }    
+    }
   ]
 }

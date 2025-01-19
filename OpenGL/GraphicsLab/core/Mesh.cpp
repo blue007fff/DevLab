@@ -20,8 +20,7 @@ void StaticMesh::UpdateBuffer()
 {
 	m_vertexLayout.SetAttrib(0, GL_FLOAT, 3, sizeof(Vertex), 0);
 	m_vertexLayout.SetAttrib(1, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, normal));
-	m_vertexLayout.SetAttrib(2, GL_FLOAT, 3, sizeof(Vertex), offsetof(Vertex, color));
-	m_vertexLayout.SetAttrib(3, GL_FLOAT, 2, sizeof(Vertex), offsetof(Vertex, texCoord));
+	m_vertexLayout.SetAttrib(2, GL_FLOAT, 2, sizeof(Vertex), offsetof(Vertex, texCoord));
 
 	if (m_vertexBuffer == nullptr)
 	{
@@ -226,7 +225,6 @@ Mesh CreateMeshFromParShape(par_shapes_mesh* shape)
 		v.pos = glm::vec3(shape->points[i * 3 + 0], shape->points[i * 3 + 1], shape->points[i * 3 + 2]);
 		v.normal = glm::vec3(shape->normals[i * 3 + 0], shape->normals[i * 3 + 1], shape->normals[i * 3 + 2]);
 		v.texCoord = glm::vec2(shape->tcoords[i * 2 + 0], shape->tcoords[i * 2 + 1]);
-		v.color = glm::vec3(1.0f, 1.0f, 1.0f);
 		mesh.m_vertices[i] = v;
 	}
 	for (int i = 0; i < shape->ntriangles; ++i)
@@ -264,7 +262,6 @@ Mesh CreateHemisphereMesh(float radius)
 }
 
 #if 0
-
 static void par_shapes__circleplane(float const* uv, float* xyz, void* userdata)
 {
 	/*float r = uv[1] * 0.5f + 0.5f;

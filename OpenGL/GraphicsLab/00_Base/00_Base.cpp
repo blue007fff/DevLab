@@ -11,6 +11,7 @@
 
 #include "Camera.h"
 #include "Mesh.h"
+#include "Model.h"
 #include "Texture.h"
 #include "ShaderProgram.h"
 #include "Utils.h"
@@ -21,8 +22,7 @@ const char* vertexShaderSource = R"(
 #version 450 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec3 aColor;
-layout (location = 3) in vec2 aTexCoord;
+layout (location = 2) in vec2 aTexCoord;
 
 uniform mat4 u_model;
 uniform mat4 u_view;
@@ -32,7 +32,6 @@ out VS_OUT
 {
     vec3 pos;
     vec3 normal;
-    vec3 color;
     vec2 texCoord;
 } vs_out;
 
@@ -44,7 +43,6 @@ void main()
     vs_out.pos = vec3(u_model * vec4(aPos, 1.0));
     // Correct normal for scaling;
     vs_out.normal = mat3(transpose(inverse(u_model))) * aNormal;
-    vs_out.color = aColor;
     vs_out.texCoord = aTexCoord;
 }
 )";
@@ -55,7 +53,6 @@ in VS_OUT
 {
     vec3 pos;
     vec3 normal;
-    vec3 color;
     vec2 texCoord;
 } fs_in;
 
@@ -75,9 +72,8 @@ void main()
     vec4 texColor1 = texture(u_tex0, fs_in.texCoord);
     vec4 texColor2 = texture(u_tex1, fs_in.texCoord);
     vec3 albedo =  mix(texColor1, texColor2, 0.5).rgb;
-    albedo = mix(fs_in.color, albedo, 0.7);
     //albedo = fs_in.color;
-    //albedo = vec3(0.5, 0.5, 0.5);
+    //albedo = vec3(0.6, 0.6, 0.6);
     //FragColor = vec4(albedo, 1.0);
     //return;
 
@@ -154,7 +150,12 @@ public:
 
         m_planeMesh = std::make_unique<StaticMesh>(CreatePlaneMesh());
         m_planeMesh->UpdateBuffer();
+        std::filesystem::path modelpath = "../../assets/3d/common-3d-test-models-master/data/teapot.obj";
+        std::filesystem::path exeFolderPath = utils::GetExecutablePath().parent_path();
+        std::filesystem::path filePath = exeFolderPath / modelpath;
+        m_model = Model::Load(filePath);
     }
+
     void Destory()
     {
         glDeleteVertexArrays(1, &m_vao);
@@ -198,6 +199,14 @@ public:
             m_shader->SetUniform(m_modelLoc, modelmat);
             m_planeMesh->Draw();
         }
+
+        {
+            glm::mat4 modelmat = glm::translate(glm::mat4(1), glm::vec3(0, 2, 0)) 
+                * glm::rotate(glm::mat4(1), glm::radians(90.0f), glm::vec3(1, 0, 0))
+                * glm::scale(glm::mat4(1), glm::vec3(0.3f));
+            m_shader->SetUniform(m_modelLoc, modelmat);
+            m_model->Draw(m_shader.get());
+        }
     }
 
 public:
@@ -222,6 +231,7 @@ public:
     std::unique_ptr<gl::Texture> m_tex1;
     std::unique_ptr<StaticMesh> m_qubeMesh;
     std::unique_ptr<StaticMesh> m_planeMesh;
+    std::unique_ptr<Model> m_model;
 
 }g_scene;
 
