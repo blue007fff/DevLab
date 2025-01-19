@@ -26,6 +26,8 @@ public:
 
 	void Trackball(int w, int h, glm::vec2 mousePrev, glm::vec2 mouseCurr);
 	void Zoom(float zoomRatio);
+	void Lookat(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up);
+
 
 	glm::mat4 GetViewMatrix() const;
 	glm::mat4 GetTransformation() const;

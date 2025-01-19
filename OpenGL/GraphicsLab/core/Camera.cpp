@@ -175,3 +175,12 @@ void Camera::Zoom(float zoomRatio)
 
 	m_pos = lookat - GetFoward() * GetLookDist();
 }
+
+void Camera::Lookat(const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up)
+{
+	auto view = glm::lookAt(eye, center, up);
+	auto tf = glm::inverse(view);
+	m_pos = glm::vec3(tf[3]);
+	m_quat = glm::quat_cast(tf);
+	m_quat = glm::normalize(m_quat); // 오차 보정
+}

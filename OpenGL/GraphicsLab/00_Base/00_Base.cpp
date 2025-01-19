@@ -126,6 +126,7 @@ public:
         glm::mat4 view = camtrn * camrot;
         m_camera.SetPos(glm::vec3(view[3]));
         m_camera.SetQuat(glm::quat_cast(view));
+        m_camera.Lookat(glm::vec3(2, 2, 2), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
 
         m_shader = gl::ShaderProgram::Create(vertexShaderSource, fragmentShaderSource);
         m_modelLoc = glGetUniformLocation(m_shader->Get(), "u_model");
@@ -206,7 +207,6 @@ public:
     bool m_mousePressed{ false };
 
     glm::ivec2 m_screenSize{ 0, 0 };
-    unsigned int m_shaderID{ 0 };
     std::unique_ptr<gl::ShaderProgram> m_shader;
 
     GLint m_modelLoc{ 0 };
@@ -225,40 +225,6 @@ public:
 
 }g_scene;
 
-
-// 키 입력 처리
-void processInput(GLFWwindow* window, double deltaTime)
-{
-    if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
-        // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
-        return;
-    }
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-
-    // 이동 속도는 deltaTime으로 조정
-    float velocity = 5.0f * (float)deltaTime;
-    float angle_velocity = 45.0f * (float)deltaTime;
-
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // 앞으로 이동
-        g_scene.m_camera.MoveFoward(velocity);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // 뒤로 이동
-        g_scene.m_camera.MoveFoward(-velocity);
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) // 왼쪽으로 이동
-        g_scene.m_camera.MoveUp(-velocity);
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) // 오른쪽으로 이동
-        g_scene.m_camera.MoveUp(velocity);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        g_scene.m_camera.MoveRight(-velocity);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        g_scene.m_camera.MoveRight(velocity);
-}
-
-
 class FirstApp : public BaseApp
 {
 public:
@@ -273,8 +239,6 @@ public:
 	}
 
 	virtual void Draw(double elasped) override {
-
-		//processInput(elasped)
 
 		 //ImGui::ShowDemoWindow(); // Show demo window! :)
 		//ImGui::ShowUserGuide();
@@ -298,21 +262,28 @@ public:
         g_scene.Draw(elasped);
 	}
 
+    void ProcessInput(GLFWwindow* window, double deltaTime)
+    {
+        if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+            // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+            return;
+        }
+        m_defaultCameraInputProcessor.Process(g_scene.m_camera, window, deltaTime);
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+    }
+
 	virtual void FramebufferSizeCallback(GLFWwindow* window, int w, int h) {
         g_scene.m_screenSize = glm::ivec2(w, h);
 	}
+
 	virtual void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-        if (button == GLFW_MOUSE_BUTTON_LEFT)
-        { // 좌클릭
-            if (action == GLFW_PRESS)
-            {
-                g_scene.m_mousePressed = true;
-                //glfwGetCursorPos(window, &lastX, &lastY); // 클릭 순간 마우스 위치 저장
-            }
-            else if (action == GLFW_RELEASE)
-            {
-                g_scene.m_mousePressed = false;
-            }
+        if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+            // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+            return;
         }
 	}
 	virtual void CursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -320,19 +291,6 @@ public:
             // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
             return;
         }
-
-        glm::vec2 currpos = glm::vec2(xpos, ypos);
-        if (g_scene.m_mousePressed)
-        {
-            /* g_scene.m_camera.Trackball(
-                 g_scene.m_screenSize.x, g_scene.m_screenSize.y,
-                 g_scene.m_lastMousePoint, currpos);*/
-
-            glm::vec2 diff = currpos - g_scene.m_lastMousePoint;
-            g_scene.m_camera.Turn(diff.x / (float)g_scene.m_screenSize.x * 90.0f);
-            g_scene.m_camera.Lookup(-diff.y / (float)g_scene.m_screenSize.y * 90.0f);
-        }
-        g_scene.m_lastMousePoint = currpos;
 	}
 	virtual void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		// yoffset 값이 +1이면 휠을 위로, -1이면 아래로 스크롤한 것입니다.
@@ -346,30 +304,18 @@ public:
 			g_scene.m_camera.Zoom(-0.02f);
 		}
 	}
-	virtual void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
+	virtual void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) 
+    {
+        if (ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard) {
+            // ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+            return;
+        }
 
-
-        double deltaTime = 0.01;
-        // 이동 속도는 deltaTime으로 조정
-        float velocity = 5.0f * (float)deltaTime;
-        float angle_velocity = 45.0f * (float)deltaTime;
-
-
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // 앞으로 이동
-            g_scene.m_camera.MoveFoward(velocity);
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // 뒤로 이동
-            g_scene.m_camera.MoveFoward(-velocity);
-        if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) // 왼쪽으로 이동
-            g_scene.m_camera.MoveUp(-velocity);
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) // 오른쪽으로 이동
-            g_scene.m_camera.MoveUp(velocity);
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            g_scene.m_camera.MoveRight(-velocity);
-        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-            g_scene.m_camera.MoveRight(velocity);
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
 	}
+
+    DefaultCameraInputProcessor m_defaultCameraInputProcessor;
 };
 
 int main()

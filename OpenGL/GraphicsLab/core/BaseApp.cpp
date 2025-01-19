@@ -9,7 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h> // 파일 싱크 사용
 
-//#include "Camera.h"
+#include "Camera.h"
 //#include "Mesh.h"
 //#include "Texture.h"
 //#include "ShaderProgram.h"
@@ -20,6 +20,12 @@ const unsigned int SCR_HEIGHT = 600;
 
 namespace
 {
+	bool ImGuIOCapturing()
+	{
+		// ImGui가 마우스를 캡처했을 때 3D 화면에 마우스 이벤트를 전달하지 않음
+		return ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard;
+	}
+
 	void BaseAppFramebufferSizeCallbak(GLFWwindow* window, int w, int h)
 	{
 		// 창에 연결된 유저 데이터 가져오기
@@ -29,24 +35,28 @@ namespace
 
 	void BaseAppMouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 	{
+		if (ImGuIOCapturing()) return;
 		BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
 		if (app) { app->MouseButtonCallback(window, button, action, mods); }
 	}
 
 	void BaseAppCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 	{
+		if (ImGuIOCapturing()) return;
 		BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
 		if (app) { app->CursorPosCallback(window, xpos, ypos); }
 	}
 
 	void BaseAppScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	{
+		if (ImGuIOCapturing()) return;
 		BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
 		if (app) { app->ScrollCallback(window, xoffset, yoffset); }
 	}
 
 	void BaseAppKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
+		if (ImGuIOCapturing()) return;
 		BaseApp* app = static_cast<BaseApp*>(glfwGetWindowUserPointer(window));
 		if (app) { app->KeyCallback(window, key, scancode, action, mods); }
 	}
@@ -119,10 +129,12 @@ int BaseApp::Run()
 		while (!glfwWindowShouldClose(window))
 		{
 			double currTime = glfwGetTime();
-			double deltTime = currTime - prevTime;
+			double deltaTime = currTime - prevTime;
 			prevTime = currTime;
 
 			glfwPollEvents();
+
+			ProcessInput(window, deltaTime);
 
 			// Start the Dear ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
@@ -131,7 +143,7 @@ int BaseApp::Run()
 
 			//ImGui::ShowDemoWindow(); // Show demo window! :)
 
-			Draw(deltTime);
+			Draw(deltaTime);
 
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -149,6 +161,10 @@ int BaseApp::Run()
 	return 0;
 }
 
+void BaseApp::ProcessInput(GLFWwindow* window, double deltaTime)
+{
+}
+
 void BaseApp::FramebufferSizeCallback(GLFWwindow* window, int w, int h)
 {
 }
@@ -163,4 +179,44 @@ void BaseApp::ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 }
 void BaseApp::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+}
+
+void DefaultCameraInputProcessor::Process(Camera& camera, GLFWwindow* window, double deltaTime)
+{
+	glm::dvec2 currPos, prevPos;
+	glfwGetCursorPos(window, &currPos.x, &currPos.y);
+	prevPos = m_lastMousePoint;
+	m_lastMousePoint = currPos;
+
+	// 이동 속도는 deltaTime으로 조정
+	float velocity = 5.0f * (float)deltaTime;
+	float angle_velocity = 45.0f * (float)deltaTime;
+
+	int mouseLState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	if (mouseLState == GLFW_PRESS)
+	{
+		int w, h;
+		glfwGetWindowSize(window, &w, &h);
+
+		/* g_scene.m_camera.Trackball(
+			 g_scene.m_screenSize.x, g_scene.m_screenSize.y,
+			 g_scene.m_lastMousePoint, currpos);*/
+		
+		glm::dvec2 diff = currPos - prevPos;
+		camera.Turn(static_cast<float>(diff.x / w * 90.0));
+		camera.Lookup(static_cast<float>(-diff.y / h * 90.0));
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		camera.MoveFoward(velocity);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		camera.MoveFoward(-velocity);
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		camera.MoveUp(-velocity);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		camera.MoveUp(velocity);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.MoveRight(-velocity);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		camera.MoveRight(velocity);
 }
