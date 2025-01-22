@@ -21,7 +21,10 @@ struct Mesh
 class Material
 {
 public:
-	gl::Texture* m_diffuseTex{ nullptr };
+	static std::unique_ptr<Material> Create();
+
+	std::shared_ptr<gl::Texture> m_diffuseTex;
+	std::shared_ptr<gl::Texture> m_specularTex;
 };
 
 class StaticMesh
@@ -36,6 +39,7 @@ public:
 	gl::VertexLayout m_vertexLayout;
 	std::unique_ptr<gl::Buffer> m_vertexBuffer;
 	std::unique_ptr<gl::Buffer> m_indexBuffer;
+	std::shared_ptr<Material> m_material;
 };
 
 Mesh CreateCubeMesh();

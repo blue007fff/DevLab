@@ -11,6 +11,11 @@
 
 static Mesh CreateMeshFromParShape(par_shapes_mesh* shape);
 
+std::unique_ptr<Material> Material::Create()
+{
+	return std::unique_ptr<Material>(new Material());
+}
+
 StaticMesh::StaticMesh(const Mesh& mesh)
 	: m_mesh{ mesh }
 {
@@ -38,6 +43,19 @@ void StaticMesh::UpdateBuffer()
 
 void StaticMesh::Draw()
 {
+	if (m_material)
+	{
+		if (m_material->m_diffuseTex)
+		{
+			m_material->m_diffuseTex->Bind(0);
+		}
+		if (m_material->m_specularTex)
+		{
+			m_material->m_specularTex->Bind(1);
+		}
+	}
+	
+
 	m_vertexBuffer->Bind();
 	m_indexBuffer->Bind();
 	m_vertexLayout.Enable();

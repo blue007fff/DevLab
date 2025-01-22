@@ -10,6 +10,9 @@ namespace gl
 		static std::unique_ptr<Texture> CreateTexture(
 			std::filesystem::path relativePath);
 
+        static std::unique_ptr<Texture> CreateSingleColorImage(
+            int width, int height, const glm::vec4& color);
+
 		void Bind(uint32_t slot) const;
 
 	public:

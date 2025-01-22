@@ -44,10 +44,10 @@ bool Model::LoadByAssimp(std::filesystem::path filepath)
 	for (uint32_t i = 0; i < scene->mNumMaterials; i++)
 	{
 		auto material = scene->mMaterials[i];
-		/*auto glMaterial = Material::Create();
-		glMaterial->diffuse = LoadTexture(material, aiTextureType_DIFFUSE);
-		glMaterial->specular = LoadTexture(material, aiTextureType_SPECULAR);
-		m_materials.push_back(std::move(glMaterial));*/
+		auto glMaterial = Material::Create();
+		glMaterial->m_diffuseTex = LoadTexture(material, aiTextureType_DIFFUSE);
+		glMaterial->m_specularTex = LoadTexture(material, aiTextureType_SPECULAR);
+		m_materials.push_back(std::move(glMaterial));
 	}
 
 	ProcessNode(scene->mRootNode, scene);
@@ -94,13 +94,9 @@ void Model::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 	std::shared_ptr<StaticMesh> myMesh(new StaticMesh());
 	myMesh->m_mesh.m_vertices = vertices;
 	myMesh->m_mesh.m_indices = indices;
-	myMesh->UpdateBuffer();
-	//auto glMesh =  Create(vertices, indices, GL_TRIANGLES);
-	
-#if 0
+	myMesh->UpdateBuffer();	
 	if (mesh->mMaterialIndex >= 0)
-		glMesh->SetMaterial(m_materials[mesh->mMaterialIndex]);
-#endif
+		myMesh->m_material = m_materials[mesh->mMaterialIndex];
 
 	m_meshes.push_back(std::move(myMesh));
 }

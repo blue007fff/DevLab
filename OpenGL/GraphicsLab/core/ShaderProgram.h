@@ -11,6 +11,9 @@ namespace gl
         static std::unique_ptr<ShaderProgram> Create(
             std::string_view vsCode, std::string_view fsCode);
 
+        static std::unique_ptr<ShaderProgram> CreateFromFile(
+            std::string_view vsPath, std::string_view fsPath);
+
         ~ShaderProgram();
         uint32_t Get() const;
         void Use() const;
@@ -18,7 +21,7 @@ namespace gl
         template<typename T>
         void SetUniform(std::string_view name, T value) const {
             auto loc = glGetUniformLocation(m_programID, name.data());
-            SetUniform(loc, T);
+            SetUniform(loc, value);
         };
 
         void SetUniform(int32_t loc, int value) const;

@@ -15,97 +15,8 @@
 #include "Texture.h"
 #include "ShaderProgram.h"
 #include "Utils.h"
+#include "GLError.h"
 
-
-// 셰이더 소스 코드
-const char* vertexShaderSource = R"(
-#version 450 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoord;
-
-uniform mat4 u_model;
-uniform mat4 u_view;
-uniform mat4 u_projection;
-
-out VS_OUT
-{
-    vec3 pos;
-    vec3 normal;
-    vec2 texCoord;
-} vs_out;
-
-void main() 
-{
-    gl_Position = u_projection * u_view * u_model * vec4(aPos, 1.0f);
-
-    // calculate world space position and normal
-    vs_out.pos = vec3(u_model * vec4(aPos, 1.0));
-    // Correct normal for scaling;
-    vs_out.normal = mat3(transpose(inverse(u_model))) * aNormal;
-    vs_out.texCoord = aTexCoord;
-}
-)";
-
-const char* fragmentShaderSource = R"(
-#version 450 core
-in VS_OUT
-{
-    vec3 pos;
-    vec3 normal;
-    vec2 texCoord;
-} fs_in;
-
-// layout(binding = 0): >= 420
-layout(binding = 0) uniform sampler2D u_tex0;
-layout(binding = 1) uniform sampler2D u_tex1;
-
-// Light properties
-uniform vec3 u_lightPos;  // Position of the light source
-uniform vec3 u_lightColor; // Color of the light source
-uniform vec3 u_viewPos;   // Position of the camera/viewer
-
-out vec4 FragColor;
-
-void main()
-{
-    vec4 texColor1 = texture(u_tex0, fs_in.texCoord);
-    vec4 texColor2 = texture(u_tex1, fs_in.texCoord);
-    vec3 albedo =  mix(texColor1, texColor2, 0.5).rgb;
-    //albedo = fs_in.color;
-    //albedo = vec3(0.6, 0.6, 0.6);
-    //FragColor = vec4(albedo, 1.0);
-    //return;
-
-    if(!gl_FrontFacing)
-        albedo = vec3(0.2, 0.2, 0.8);
-
-    vec3 pos = fs_in.pos;
-    vec3 normal = normalize(fs_in.normal);
-
-    vec3 lightColor = u_lightColor;
-    vec3 specularColor = vec3(1.0, 1.0, 0.0);
-    float specularStrength = 0.5;
-
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor;
-
-    // Diffuse lighting
-    vec3 lightDir = normalize(u_lightPos - pos); // Direction from fragment to light
-    float diff = max(dot(normal, lightDir), 0.0); // Lambertian reflectance
-    vec3 diffuse = diff * lightColor;
-
-    // Specular lighting
-    vec3 viewDir = normalize(u_viewPos - pos); // to view
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
-    vec3 specular = specularStrength * spec * specularColor;
-
-    // Combine results
-    vec3 result = (ambient + diffuse) * albedo + specular;
-    FragColor = vec4(result, 1.0);
-}
-)";
 
 class Scene
 {
@@ -124,7 +35,11 @@ public:
         m_camera.SetQuat(glm::quat_cast(view));
         m_camera.Lookat(glm::vec3(2, 2, 2), glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
 
-        m_shader = gl::ShaderProgram::Create(vertexShaderSource, fragmentShaderSource);
+        namespace fs = std::filesystem;
+        fs::path exeFolderPath = utils::GetExecutablePath().parent_path();
+        fs::path vsPath = exeFolderPath / "../../assets/shaders/lighting/lighting.vs";
+        fs::path fsPath = exeFolderPath / "../../assets/shaders/lighting/lighting.fs";
+        m_shader = gl::ShaderProgram::CreateFromFile(vsPath.string(), fsPath.string());
         m_modelLoc = glGetUniformLocation(m_shader->Get(), "u_model");
         m_viewLoc = glGetUniformLocation(m_shader->Get(), "u_view");
         m_projectionLoc = glGetUniformLocation(m_shader->Get(), "u_projection");
@@ -133,25 +48,91 @@ public:
         m_lightColorLoc = glGetUniformLocation(m_shader->Get(), "u_lightColor");
         m_viewPosLoc = glGetUniformLocation(m_shader->Get(), "u_viewPos");
 
+        // positions of the point lights
+        glm::vec3 pointLightPositions[] = {
+            glm::vec3(3, 3, 3),
+            glm::vec3(-3, 3, 3),
+            glm::vec3(-3, -3, 3),
+            glm::vec3(3, -3, 3)
+        };
+
         m_shader->Use();
-        m_shader->SetUniform(m_lightPosLoc, glm::vec3(3, 3, 3));
-        m_shader->SetUniform(m_lightColorLoc, glm::vec3(1.5f, 1.5f, 1.5f));
+        m_shader->SetUniform("u_material.shininess", 32.0f);
+        m_shader->SetUniform("u_dirLight.direction", glm::vec3(-3));
+        m_shader->SetUniform("u_dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+        m_shader->SetUniform("u_dirLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f) * 0.0f);
+        m_shader->SetUniform("u_dirLight.specular", glm::vec3(0.5f, 0.5f, 0.5f) * 0.0f);
+
+        // point light 1
+        m_shader->SetUniform("u_pointLights[0].position", pointLightPositions[0]);
+        m_shader->SetUniform("u_pointLights[0].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+        m_shader->SetUniform("u_pointLights[0].diffuse", glm::vec3(0.2f, 0.2f, 0.2f) * 0.4f);
+        m_shader->SetUniform("u_pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
+       m_shader->SetUniform("u_pointLights[0].constant", 1.0f);
+       m_shader->SetUniform("u_pointLights[0].linear", 0.09f);
+       m_shader->SetUniform("u_pointLights[0].quadratic", 0.032f);
+        // point light 2
+       m_shader->SetUniform("u_pointLights[1].position", pointLightPositions[1]);
+       m_shader->SetUniform("u_pointLights[1].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+       m_shader->SetUniform("u_pointLights[1].diffuse", glm::vec3(1.0f, 0.0f, 0.0f) * 0.4f);
+       m_shader->SetUniform("u_pointLights[1].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
+        m_shader->SetUniform("u_pointLights[1].constant", 1.0f);
+        m_shader->SetUniform("u_pointLights[1].linear", 0.09f);
+        m_shader->SetUniform("u_pointLights[1].quadratic", 0.032f);
+        // point light 3
+        m_shader->SetUniform("u_pointLights[2].position", pointLightPositions[2]);
+        m_shader->SetUniform("u_pointLights[2].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+        m_shader->SetUniform("u_pointLights[2].diffuse", glm::vec3(0.0f, 1.0f, 0.0f) * 0.4f);
+        m_shader->SetUniform("u_pointLights[2].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
+       m_shader->SetUniform("u_pointLights[2].constant", 1.0f);
+       m_shader->SetUniform("u_pointLights[2].linear", 0.09f);
+       m_shader->SetUniform("u_pointLights[2].quadratic", 0.032f);
+        // point light 4
+        m_shader->SetUniform("u_pointLights[3].position", pointLightPositions[3]);
+        m_shader->SetUniform("u_pointLights[3].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
+        m_shader->SetUniform("u_pointLights[3].diffuse", glm::vec3(0.0f, 0.0f, 1.0f) * 0.4f);
+        m_shader->SetUniform("u_pointLights[3].specular", glm::vec3(1.0f, 1.0f, 1.0f));
+        m_shader->SetUniform("u_pointLights[3].constant", 1.0f);
+        m_shader->SetUniform("u_pointLights[3].linear", 0.09f);
+        m_shader->SetUniform("u_pointLights[3].quadratic", 0.032f);
+        // spotLight
+       m_shader->SetUniform("u_spotLight.position", m_camera.GetPos());
+       m_shader->SetUniform("u_spotLight.direction", m_camera.GetFoward());
+       m_shader->SetUniform("u_spotLight.ambient", glm::vec3(0.0f, 0.0f, 0.0f));
+       m_shader->SetUniform("u_spotLight.diffuse", glm::vec3(0.3f, 0.3f, 0.0f));
+       m_shader->SetUniform("u_spotLight.specular", glm::vec3(1.0f, 0.0f, 1.0f) * 0.3f);
+        m_shader->SetUniform("u_spotLight.constant", 1.0f);
+        m_shader->SetUniform("u_spotLight.linear", 0.09f);
+        m_shader->SetUniform("u_spotLight.quadratic", 0.032f);
+        m_shader->SetUniform("u_spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        m_shader->SetUniform("u_spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
+        m_shader->SetUniform(m_lightPosLoc, -glm::vec3(3, 3, 3));
+        //m_shader->SetUniform(m_lightColorLoc, glm::vec3(1));
+
+        gl::error::CheckDriverError();
 
         // load images
         m_tex0 = gl::Texture::CreateTexture("../../assets/images/awesomeface.png");
         //m_tex1 = Texture::CreateTexture("../../assets/images/container.jpg");
         m_tex1 = gl::Texture::CreateTexture("../../assets/images/debug.jpg");
+        m_texDefault = gl::Texture::CreateSingleColorImage(16, 16, glm::vec4(1));
+        std::shared_ptr<Material> matDefault(new Material());
+        std::shared_ptr<gl::Texture> tex = std::move(m_texDefault);
+        matDefault->m_diffuseTex = tex;
+        matDefault->m_specularTex = tex;
 
         glGenVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
 
         m_qubeMesh = std::make_unique<StaticMesh>(CreateCubeMesh());
+        m_qubeMesh->m_material = matDefault;
         m_qubeMesh->UpdateBuffer();
 
         m_planeMesh = std::make_unique<StaticMesh>(CreatePlaneMesh());
+        m_planeMesh->m_material = matDefault;
         m_planeMesh->UpdateBuffer();
-        std::filesystem::path modelpath = "../../assets/3d/common-3d-test-models-master/data/teapot.obj";
-        std::filesystem::path exeFolderPath = utils::GetExecutablePath().parent_path();
+        std::filesystem::path modelpath = "../../assets/3d/backpack/backpack.obj";
         std::filesystem::path filePath = exeFolderPath / modelpath;
         m_model = Model::Load(filePath);
     }
@@ -183,6 +164,9 @@ public:
         glm::vec3 viewpos = glm::vec3(m_camera.GetTransformation()[3]);
         m_shader->SetUniform(m_viewPosLoc, viewpos);
 
+        m_shader->SetUniform("u_spotLight.position", m_camera.GetPos());
+        m_shader->SetUniform("u_spotLight.direction", m_camera.GetFoward());
+
         m_tex0->Bind(0);
         m_tex1->Bind(1);
 
@@ -190,7 +174,7 @@ public:
             glm::mat4 t = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, 0.5f));
             glm::mat4 modelmat = t;
             m_shader->SetUniform(m_modelLoc, modelmat);
-            m_qubeMesh->Draw();
+            //m_qubeMesh->Draw();
         }
 
         {
@@ -201,12 +185,15 @@ public:
         }
 
         {
-            glm::mat4 modelmat = glm::translate(glm::mat4(1), glm::vec3(0, 2, 0)) 
+            glm::mat4 modelmat = glm::mat4(1);
+           /* glm::mat4 modelmat = glm::translate(glm::mat4(1), glm::vec3(0, 2, 0)) 
                 * glm::rotate(glm::mat4(1), glm::radians(90.0f), glm::vec3(1, 0, 0))
-                * glm::scale(glm::mat4(1), glm::vec3(0.3f));
+                * glm::scale(glm::mat4(1), glm::vec3(1.0f));*/
             m_shader->SetUniform(m_modelLoc, modelmat);
             m_model->Draw(m_shader.get());
         }
+
+        gl::error::CheckDriverError();
     }
 
 public:
@@ -229,6 +216,8 @@ public:
     GLuint m_vao{ 0 };
     std::unique_ptr<gl::Texture> m_tex0;
     std::unique_ptr<gl::Texture> m_tex1;
+    std::unique_ptr<gl::Texture> m_texDefault;
+
     std::unique_ptr<StaticMesh> m_qubeMesh;
     std::unique_ptr<StaticMesh> m_planeMesh;
     std::unique_ptr<Model> m_model;

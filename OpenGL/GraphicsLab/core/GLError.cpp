@@ -4,7 +4,7 @@
 
 namespace gl::error
 {
-    GLenum CheckDriverError()
+    void CheckDriverError()
     {
         GLenum errorCode;
         while ((errorCode = glGetError()) != GL_NO_ERROR)
@@ -20,9 +20,9 @@ namespace gl::error
             case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
             case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
             }
+			assert(false);
             std::cout << error << std::endl;
         }
-        return errorCode;
     }
 
     void APIENTRY DriverDebugOutput(GLenum source,

@@ -1,9 +1,32 @@
 ﻿#include "ShaderProgram.h"
 #include <glad/gl.h>
 #include "Utils.h"
+#include <fstream>
 
 namespace gl
 {
+    std::string GetShaderCode(std::string_view filepath)
+    {
+        std::ifstream fs;
+
+        // ensure ifstream objects can throw exceptions:
+        fs.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+        try
+        {
+            fs.open(filepath);
+            std::stringstream ss;
+            // read file's buffer contents into streams
+            ss << fs.rdbuf();
+            fs.close();
+            return ss.str();
+        }
+        catch (std::ifstream::failure& e)
+        {
+            spdlog::error("SHADER_FIlE_READ_ERROR: {}", e.what());
+        }
+        return std::string();
+    }
+
     void CheckShaderCompileErrors(uint32_t shader)
     {
         int success;
@@ -15,6 +38,7 @@ namespace gl
             {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
                 spdlog::error("SHADER_COMPILATION_ERROR: {}", infoLog);
+                assert(false);
             }
         }
         else if (glIsProgram(shader))
@@ -24,9 +48,18 @@ namespace gl
             {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
 				spdlog::error("PROGRAM_LINKING_ERROR: {}", infoLog);
+                assert(false);
 			}
 		}
 	}
+
+    std::unique_ptr<ShaderProgram> ShaderProgram::CreateFromFile(
+        std::string_view vsPath, std::string_view fsPath)
+    {
+        std::string vsCode = GetShaderCode(vsPath);
+        std::string fsCode = GetShaderCode(fsPath);
+        return ShaderProgram::Create(vsCode, fsCode);
+    }
 
     std::unique_ptr<ShaderProgram> ShaderProgram::Create(
         std::string_view vsCode, std::string_view fsCode)

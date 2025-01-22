@@ -25,5 +25,5 @@ private:
     void ProcessNode(aiNode* node, const aiScene* scene);
         
     std::vector<std::shared_ptr<StaticMesh>> m_meshes;
-    //std::vector<MaterialPtr> m_materials;
+    std::vector<std::shared_ptr<Material>> m_materials;
 };
