@@ -57,6 +57,9 @@
     <ClCompile Include="..\core\GLError.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="..\core\Image.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\par_shapes.h">
@@ -96,6 +99,9 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="..\core\GLError.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core\Image.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>

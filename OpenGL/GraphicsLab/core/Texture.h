@@ -2,17 +2,13 @@
 
 #include "Common.h"
 
+class Image;
 namespace gl
 {
 	class Texture
 	{
 	public:
-		static std::unique_ptr<Texture> CreateTexture(
-			std::filesystem::path relativePath);
-
-        static std::unique_ptr<Texture> CreateSingleColorImage(
-            int width, int height, const glm::vec4& color);
-
+		static std::unique_ptr<Texture> Create(Image* image);
 		void Bind(uint32_t slot) const;
 
 	public:

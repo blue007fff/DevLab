@@ -12,6 +12,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Model.h"
+#include "Image.h"
 #include "Texture.h"
 #include "ShaderProgram.h"
 #include "Utils.h"
@@ -44,68 +45,65 @@ public:
         m_viewLoc = glGetUniformLocation(m_shader->Get(), "u_view");
         m_projectionLoc = glGetUniformLocation(m_shader->Get(), "u_projection");
 
-        m_lightPosLoc = glGetUniformLocation(m_shader->Get(), "u_lightPos");
-        m_lightColorLoc = glGetUniformLocation(m_shader->Get(), "u_lightColor");
-        m_viewPosLoc = glGetUniformLocation(m_shader->Get(), "u_viewPos");
+		m_lightPosLoc = glGetUniformLocation(m_shader->Get(), "u_lightPos");
+		m_lightColorLoc = glGetUniformLocation(m_shader->Get(), "u_lightColor");
+		m_viewPosLoc = glGetUniformLocation(m_shader->Get(), "u_viewPos");
 
-        // positions of the point lights
-        glm::vec3 pointLightPositions[] = {
-            glm::vec3(3, 3, 3),
-            glm::vec3(-3, 3, 3),
-            glm::vec3(-3, -3, 3),
-            glm::vec3(3, -3, 3)
+        constexpr float pd = 5.0f;
+        struct PointLight {
+            glm::vec3 pos;
+            glm::vec3 color;
+            float constant{ 1.0f };
+            float linear{ 0.09f };
+            float quadratic{ 0.032f };
         };
+        PointLight pointLights[4]{
+			{.pos = glm::vec3(pd, pd, pd), .color = glm::vec3(1, 0, 0)},
+			{.pos = glm::vec3(-pd, pd, pd), .color = glm::vec3(0, 1, 0)},
+			{.pos = glm::vec3(-pd, -pd, pd), .color = glm::vec3(0, 0, 1)},
+			{.pos = glm::vec3(pd, -pd, pd), .color = glm::vec3(1, 1, 1)},
+		};
+        /*PointLight pointLights[4]{
+            {.pos = glm::vec3(pd, pd, pd), .color = glm::vec3(1)},
+            {.pos = glm::vec3(-pd, pd, pd), .color = glm::vec3(1)},
+            {.pos = glm::vec3(-pd, -pd, pd), .color = glm::vec3(1)},
+            {.pos = glm::vec3(pd, -pd, pd), .color = glm::vec3(1)},
+        };*/
 
-        m_shader->Use();
-        m_shader->SetUniform("u_material.shininess", 32.0f);
-        m_shader->SetUniform("u_dirLight.direction", glm::vec3(-3));
-        m_shader->SetUniform("u_dirLight.ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-        m_shader->SetUniform("u_dirLight.diffuse", glm::vec3(0.4f, 0.4f, 0.4f) * 0.0f);
-        m_shader->SetUniform("u_dirLight.specular", glm::vec3(0.5f, 0.5f, 0.5f) * 0.0f);
+		m_shader->Use();
+        glm::vec3 dirLightColor{1};
+		m_shader->SetUniform("u_material.shininess", 32.0f);
+		m_shader->SetUniform("u_dirLight.direction", glm::vec3(0.0f, 0.2f, -1.0f));
+		m_shader->SetUniform("u_dirLight.ambient", dirLightColor * 0.05f);
+		m_shader->SetUniform("u_dirLight.diffuse", dirLightColor * 0.2f);
+		m_shader->SetUniform("u_dirLight.specular", dirLightColor * 0.2f);
 
-        // point light 1
-        m_shader->SetUniform("u_pointLights[0].position", pointLightPositions[0]);
-        m_shader->SetUniform("u_pointLights[0].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-        m_shader->SetUniform("u_pointLights[0].diffuse", glm::vec3(0.2f, 0.2f, 0.2f) * 0.4f);
-        m_shader->SetUniform("u_pointLights[0].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
-       m_shader->SetUniform("u_pointLights[0].constant", 1.0f);
-       m_shader->SetUniform("u_pointLights[0].linear", 0.09f);
-       m_shader->SetUniform("u_pointLights[0].quadratic", 0.032f);
-        // point light 2
-       m_shader->SetUniform("u_pointLights[1].position", pointLightPositions[1]);
-       m_shader->SetUniform("u_pointLights[1].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-       m_shader->SetUniform("u_pointLights[1].diffuse", glm::vec3(1.0f, 0.0f, 0.0f) * 0.4f);
-       m_shader->SetUniform("u_pointLights[1].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
-        m_shader->SetUniform("u_pointLights[1].constant", 1.0f);
-        m_shader->SetUniform("u_pointLights[1].linear", 0.09f);
-        m_shader->SetUniform("u_pointLights[1].quadratic", 0.032f);
-        // point light 3
-        m_shader->SetUniform("u_pointLights[2].position", pointLightPositions[2]);
-        m_shader->SetUniform("u_pointLights[2].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-        m_shader->SetUniform("u_pointLights[2].diffuse", glm::vec3(0.0f, 1.0f, 0.0f) * 0.4f);
-        m_shader->SetUniform("u_pointLights[2].specular", glm::vec3(1.0f, 1.0f, 1.0f) * 0.5f);
-       m_shader->SetUniform("u_pointLights[2].constant", 1.0f);
-       m_shader->SetUniform("u_pointLights[2].linear", 0.09f);
-       m_shader->SetUniform("u_pointLights[2].quadratic", 0.032f);
-        // point light 4
-        m_shader->SetUniform("u_pointLights[3].position", pointLightPositions[3]);
-        m_shader->SetUniform("u_pointLights[3].ambient", glm::vec3(0.05f, 0.05f, 0.05f));
-        m_shader->SetUniform("u_pointLights[3].diffuse", glm::vec3(0.0f, 0.0f, 1.0f) * 0.4f);
-        m_shader->SetUniform("u_pointLights[3].specular", glm::vec3(1.0f, 1.0f, 1.0f));
-        m_shader->SetUniform("u_pointLights[3].constant", 1.0f);
-        m_shader->SetUniform("u_pointLights[3].linear", 0.09f);
-        m_shader->SetUniform("u_pointLights[3].quadratic", 0.032f);
-        // spotLight
-       m_shader->SetUniform("u_spotLight.position", m_camera.GetPos());
-       m_shader->SetUniform("u_spotLight.direction", m_camera.GetFoward());
-       m_shader->SetUniform("u_spotLight.ambient", glm::vec3(0.0f, 0.0f, 0.0f));
-       m_shader->SetUniform("u_spotLight.diffuse", glm::vec3(0.3f, 0.3f, 0.0f));
-       m_shader->SetUniform("u_spotLight.specular", glm::vec3(1.0f, 0.0f, 1.0f) * 0.3f);
-        m_shader->SetUniform("u_spotLight.constant", 1.0f);
-        m_shader->SetUniform("u_spotLight.linear", 0.09f);
-        m_shader->SetUniform("u_spotLight.quadratic", 0.032f);
-        m_shader->SetUniform("u_spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        m_shader->SetUniform("u_spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		// point light 1
+		for (int i = 0; i < 4; ++i)
+		{
+			auto& pointLight = pointLights[i];
+			std::string strLight = std::format("u_pointLights[{}]", i);
+			m_shader->SetUniform(strLight + ".position", pointLight.pos);
+			m_shader->SetUniform(strLight + ".ambient", pointLight.color * 0.05f);
+			m_shader->SetUniform(strLight + ".diffuse", pointLight.color * 0.4f);
+			m_shader->SetUniform(strLight + ".specular", pointLight.color * 0.5f);
+			m_shader->SetUniform(strLight + ".constant", pointLight.constant);
+			m_shader->SetUniform(strLight + ".linear", pointLight.linear);
+			m_shader->SetUniform(strLight + ".quadratic", pointLight.quadratic);
+		}
+
+		// spotLight
+        glm::vec3 spotLightColor{1};
+		m_shader->SetUniform("u_spotLight.position", m_camera.GetPos());
+		m_shader->SetUniform("u_spotLight.direction", m_camera.GetFoward());
+		m_shader->SetUniform("u_spotLight.ambient", spotLightColor * 0.0f);
+		m_shader->SetUniform("u_spotLight.diffuse", spotLightColor * 0.3f);
+		m_shader->SetUniform("u_spotLight.specular", spotLightColor * 0.0f);
+		m_shader->SetUniform("u_spotLight.constant", 1.0f);
+		m_shader->SetUniform("u_spotLight.linear", 0.09f);
+		m_shader->SetUniform("u_spotLight.quadratic", 0.032f);
+		m_shader->SetUniform("u_spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		m_shader->SetUniform("u_spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
         m_shader->SetUniform(m_lightPosLoc, -glm::vec3(3, 3, 3));
         //m_shader->SetUniform(m_lightColorLoc, glm::vec3(1));
@@ -113,10 +111,13 @@ public:
         gl::error::CheckDriverError();
 
         // load images
-        m_tex0 = gl::Texture::CreateTexture("../../assets/images/awesomeface.png");
-        //m_tex1 = Texture::CreateTexture("../../assets/images/container.jpg");
-        m_tex1 = gl::Texture::CreateTexture("../../assets/images/debug.jpg");
-        m_texDefault = gl::Texture::CreateSingleColorImage(16, 16, glm::vec4(1));
+        auto image0 = Image::Create(fs::path(exeFolderPath / "../../assets/images/awesomeface.png").string(), true);
+        auto image1 = Image::Create(fs::path(exeFolderPath / "../../assets/images/debug.jpg").string(), true);
+        m_tex0 = gl::Texture::Create(image0.get());
+        m_tex1 = gl::Texture::Create(image1.get());
+
+        auto imageDefault = Image::CreateSingleColorImage(16, 16, glm::vec4(1));
+        m_texDefault = gl::Texture::Create(imageDefault.get());
         std::shared_ptr<Material> matDefault(new Material());
         std::shared_ptr<gl::Texture> tex = std::move(m_texDefault);
         matDefault->m_diffuseTex = tex;
@@ -178,8 +179,9 @@ public:
         }
 
         {
+            glm::mat4 t = glm::translate(glm::mat4(1), glm::vec3(0.0f, 0.0f, -2.0f));
             glm::mat4 s = glm::scale(glm::mat4(1), glm::vec3(10));
-            glm::mat4 modelmat = s;
+            glm::mat4 modelmat = t * s;
             m_shader->SetUniform(m_modelLoc, modelmat);
             m_planeMesh->Draw();
         }

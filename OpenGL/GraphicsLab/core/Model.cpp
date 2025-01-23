@@ -1,5 +1,6 @@
 #include "Model.h"
 #include "Texture.h"
+#include "Image.h"
 #include "ShaderProgram.h"
 
 #include <assimp/Importer.hpp>
@@ -37,7 +38,8 @@ bool Model::LoadByAssimp(std::filesystem::path filepath)
 		aiString texFilename;
 		material->GetTexture(type, 0, &texFilename);
 		std::filesystem::path texFilepath = folderPath / texFilename.C_Str();
-		auto tex = gl::Texture::CreateTexture(texFilepath);
+		auto image = Image::Create(texFilepath.string(), true);
+		auto tex = gl::Texture::Create(image.get());
 		return tex;
 	};
 
